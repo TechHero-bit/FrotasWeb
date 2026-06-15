@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 export interface TableColumn {
   key: string;
   label: string;
+  format?: (value: any) => string;
 }
 
 @Component({
@@ -27,7 +28,7 @@ export interface TableColumn {
           @for (row of data; track row.id || $index) {
             <tr>
               @for (col of columns; track col.key) {
-                <td>{{ row[col.key] }}</td>
+                <td>{{ col.format ? col.format(row[col.key]) : row[col.key] }}</td>
               }
               @if (actionsTemplate) {
                 <td class="actions-cell">

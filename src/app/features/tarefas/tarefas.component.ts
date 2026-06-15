@@ -99,7 +99,7 @@ export class TarefasComponent implements OnInit {
     { key: 'titulo', label: 'Título' },
     { key: 'status', label: 'Status' },
     { key: 'motorista_nome', label: 'Motorista' },
-    { key: 'data_limite', label: 'Data Limite' }
+    { key: 'data_limite', label: 'Data Limite', format: (value: any) => this.formatDateTime(value) }
   ];
   
   isModalOpen = false;
@@ -213,5 +213,25 @@ export class TarefasComponent implements OnInit {
     } catch (err: any) {
       this.error = err.message || 'Erro ao excluir tarefa.';
     }
+  }
+
+  formatDateTime(value: any): string {
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    const pad = (number: number) => String(number).padStart(2, '0');
+    const day = pad(date.getDate());
+    const month = pad(date.getMonth() + 1);
+    const year = date.getFullYear();
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${day}/${month}/${year}-${hours}:${minutes}`;
   }
 }
