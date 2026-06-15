@@ -21,7 +21,6 @@ export class MotoristasService {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .select('*')
-      .in('role', ['motorista', 'driver'])
       .order('nome', { ascending: true });
 
     if (error) throw error;

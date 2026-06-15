@@ -58,6 +58,32 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
           } @else {
             <p class="text-muted mt-4">Nenhuma foto de check-in encontrada para esta jornada.</p>
           }
+
+          @if (jornadaSelecionada.checkouts && jornadaSelecionada.checkouts.length > 0) {
+            <h4 class="mt-4 mb-3">Detalhes de Check-out</h4>
+            <div class="d-flex gap-3 images-container">
+              @if (jornadaSelecionada.checkouts[0].selfie_uri) {
+                <div class="img-wrapper">
+                  <p>Selfie do Motorista</p>
+                  <img [src]="jornadaSelecionada.checkouts[0].selfie_uri" alt="Selfie Checkout" class="preview-img">
+                </div>
+              }
+              @if (jornadaSelecionada.checkouts[0].foto_veiculo_uri) {
+                <div class="img-wrapper">
+                  <p>Foto do Veículo</p>
+                  <img [src]="jornadaSelecionada.checkouts[0].foto_veiculo_uri" alt="Veículo Checkout" class="preview-img">
+                </div>
+              }
+            </div>
+            @if (jornadaSelecionada.checkouts[0].observacoes) {
+              <div class="mt-3">
+                <strong>Observações do Motorista:</strong>
+                <p style="background: var(--color-gray-100); padding: 0.5rem; border-radius: 4px;">
+                  {{ jornadaSelecionada.checkouts[0].observacoes }}
+                </p>
+              </div>
+            }
+          }
         </div>
       }
       <div class="d-flex justify-content-end mt-4">

@@ -10,7 +10,9 @@ export interface Checkin {
 
 export interface Checkout {
   id?: string;
-  // Outros campos se necessário
+  selfie_uri?: string;
+  foto_veiculo_uri?: string;
+  observacoes?: string;
 }
 
 export interface Jornada {

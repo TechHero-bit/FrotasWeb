@@ -30,7 +30,7 @@ export const routes: Routes = [
           import('./features/veiculos/veiculos.component').then((m) => m.VeiculosComponent)
       },
       {
-        path: 'motoristas',
+        path: 'usuarios',
         loadComponent: () =>
           import('./features/motoristas/motoristas.component').then((m) => m.MotoristasComponent)
       },

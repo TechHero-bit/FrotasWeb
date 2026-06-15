@@ -11,8 +11,8 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
   imports: [CommonModule, FormsModule, ReactiveFormsModule, TableComponent, ModalComponent],
   template: `
     <div class="header d-flex justify-content-between align-items-center mb-4">
-      <h2 style="margin: 0; color: var(--color-primary);">Motoristas</h2>
-      <button class="btn btn-primary" (click)="openModal()">+ Novo Motorista</button>
+      <h2 style="margin: 0; color: var(--color-primary);">Usuários</h2>
+      <button class="btn btn-primary" (click)="openModal()">+ Novo Usuário</button>
     </div>
 
     @if (error) {
@@ -27,7 +27,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
       </ng-template>
     </app-table>
 
-    <app-modal [(isOpen)]="isModalOpen" title="Novo Motorista">
+    <app-modal [(isOpen)]="isModalOpen" title="Novo Usuário">
       <form [formGroup]="motoristaForm" (ngSubmit)="saveMotorista()">
         <div class="form-group">
           <label for="nome">Nome Completo</label>
@@ -87,7 +87,7 @@ export class MotoristasComponent implements OnInit {
       this.error = null;
       this.motoristas = await this.motoristasService.getMotoristas();
     } catch (err: any) {
-      this.error = 'Erro ao carregar motoristas: ' + err.message;
+      this.error = 'Erro ao carregar usuários: ' + err.message;
     }
   }
 
@@ -107,21 +107,21 @@ export class MotoristasComponent implements OnInit {
       this.motoristas = [newMotorista, ...this.motoristas];
       this.isModalOpen = false;
     } catch (err: any) {
-      this.error = 'Erro ao salvar motorista: ' + err.message;
+      this.error = 'Erro ao salvar usuário: ' + err.message;
     } finally {
       this.isSubmitting = false;
     }
   }
 
   async deleteMotorista(id: string) {
-    if (!confirm('Deseja realmente excluir este motorista?')) return;
+    if (!confirm('Deseja realmente excluir este usuário?')) return;
     
     this.error = null;
     try {
       await this.motoristasService.deleteMotorista(id);
       this.motoristas = this.motoristas.filter(m => m.id !== id);
     } catch (err: any) {
-      this.error = err.message || 'Erro ao excluir motorista.';
+      this.error = err.message || 'Erro ao excluir usuário.';
     }
   }
 }
