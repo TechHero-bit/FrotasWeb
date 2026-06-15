@@ -12,13 +12,16 @@ export interface Tarefa {
   motorista_nome?: string; // UI friendly
 }
 
+export type NovaTarefa = Omit<Tarefa, 'id' | 'usuarios' | 'motorista_nome'>;
+export type AtualizarTarefa = Omit<Tarefa, 'id' | 'usuarios' | 'motorista_nome'>;
+
 @Injectable({
   providedIn: 'root'
 })
 export class TarefasService {
   private readonly TABLE = 'tarefas';
 
-  constructor(private supabase: SupabaseService) {}
+  constructor(private supabase: SupabaseService) { }
 
   async getTarefas(): Promise<Tarefa[]> {
     const { data, error } = await this.supabase.client
@@ -27,15 +30,11 @@ export class TarefasService {
       .order('data_limite', { ascending: true });
 
     if (error) throw error;
-    
-    // Map joined user name for table display
-    return (data || []).map(t => ({
-      ...t,
-      motorista_nome: t.usuarios?.nome || 'Não atribuído'
-    }));
+
+    return (data || []).map(t => this.mapTarefa(t));
   }
 
-  async addTarefa(tarefa: Omit<Tarefa, 'id' | 'usuarios' | 'motorista_nome'>): Promise<Tarefa> {
+  async addTarefa(tarefa: NovaTarefa): Promise<Tarefa> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .insert(tarefa)
@@ -43,11 +42,21 @@ export class TarefasService {
       .single();
 
     if (error) throw error;
-    
-    return {
-      ...data,
-      motorista_nome: data.usuarios?.nome || 'Não atribuído'
-    };
+
+    return this.mapTarefa(data);
+  }
+
+  async updateTarefa(id: string, tarefa: AtualizarTarefa): Promise<Tarefa> {
+    const { data, error } = await this.supabase.client
+      .from(this.TABLE)
+      .update(tarefa)
+      .eq('id', id)
+      .select('*, usuarios(nome)')
+      .single();
+
+    if (error) throw error;
+
+    return this.mapTarefa(data);
   }
 
   async deleteTarefa(id: string): Promise<void> {
@@ -57,5 +66,12 @@ export class TarefasService {
       .eq('id', id);
 
     if (error) throw error;
+  }
+
+  private mapTarefa(tarefa: Tarefa): Tarefa {
+    return {
+      ...tarefa,
+      motorista_nome: tarefa.usuarios?.nome || 'Não atribuído'
+    };
   }
 }

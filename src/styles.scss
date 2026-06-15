@@ -117,6 +117,57 @@ a {
   color: var(--color-white);
 }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--color-text);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-icon:hover,
+.btn-icon:focus-visible {
+  background-color: rgba(185, 28, 28, 0.08);
+  border-color: rgba(185, 28, 28, 0.2);
+}
+
+.btn-icon-edit {
+  color: var(--color-primary);
+}
+
+.btn-icon-danger {
+  color: var(--color-danger);
+}
+
+.actions-group {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.alert {
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.12);
+  border-color: rgba(40, 167, 69, 0.25);
+  color: var(--color-success);
+}
+
+.alert-danger {
+  background-color: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: var(--color-danger);
+}
+
 .form-group {
   margin-bottom: var(--space-4);
 

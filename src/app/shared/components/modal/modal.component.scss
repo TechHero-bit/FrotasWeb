@@ -13,20 +13,36 @@
 }
 
 .modal-container {
-  background-color: var(--color-surface, #ffffff);
+  background-color: var(--panel-dark, #111827);
+  color: var(--text-on-dark, #ffffff);
   border-radius: var(--radius-lg, 12px);
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
   animation: modal-fade-in 0.2s ease-out;
+}
+
+.modal-container input,
+.modal-container select,
+.modal-container textarea {
+  background-color: var(--panel-dark-muted, #1f2937);
+  color: var(--text-on-dark, #ffffff);
+  border-color: var(--panel-dark-border, #4b5563);
+}
+
+.modal-container input:focus,
+.modal-container select:focus,
+.modal-container textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15);
 }
 
 .modal-header {
   padding: var(--space-4, 1.5rem);
-  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  border-bottom: 1px solid var(--panel-dark-border, #374151);
   display: flex;
   justify-content: space-between;
   align-items: center;

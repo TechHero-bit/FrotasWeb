@@ -9,13 +9,16 @@ export interface Motorista {
   role: string;
 }
 
+export type NovoMotorista = Omit<Motorista, 'id' | 'role'>;
+export type AtualizarMotorista = Omit<Motorista, 'id' | 'role'>;
+
 @Injectable({
   providedIn: 'root'
 })
 export class MotoristasService {
   private readonly TABLE = 'usuarios';
 
-  constructor(private supabase: SupabaseService) {}
+  constructor(private supabase: SupabaseService) { }
 
   async getMotoristas(): Promise<Motorista[]> {
     const { data, error } = await this.supabase.client
@@ -27,10 +30,22 @@ export class MotoristasService {
     return data || [];
   }
 
-  async addMotorista(motorista: Omit<Motorista, 'id' | 'role'>): Promise<Motorista> {
+  async addMotorista(motorista: NovoMotorista): Promise<Motorista> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .insert({ ...motorista, role: 'motorista' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateMotorista(id: string, motorista: AtualizarMotorista): Promise<Motorista> {
+    const { data, error } = await this.supabase.client
+      .from(this.TABLE)
+      .update(motorista)
+      .eq('id', id)
       .select()
       .single();
 

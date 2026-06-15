@@ -8,13 +8,16 @@ export interface Veiculo {
   status: string;
 }
 
+export type NovoVeiculo = Omit<Veiculo, 'id' | 'status'>;
+export type AtualizarVeiculo = Omit<Veiculo, 'id'>;
+
 @Injectable({
   providedIn: 'root'
 })
 export class VeiculosService {
   private readonly TABLE = 'veiculos';
 
-  constructor(private supabase: SupabaseService) {}
+  constructor(private supabase: SupabaseService) { }
 
   async getVeiculos(): Promise<Veiculo[]> {
     const { data, error } = await this.supabase.client
@@ -26,10 +29,22 @@ export class VeiculosService {
     return data || [];
   }
 
-  async addVeiculo(veiculo: Omit<Veiculo, 'id'>): Promise<Veiculo> {
+  async addVeiculo(veiculo: NovoVeiculo): Promise<Veiculo> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
-      .insert(veiculo)
+      .insert({ ...veiculo, status: 'Disponível' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async updateVeiculo(id: string, veiculo: AtualizarVeiculo): Promise<Veiculo> {
+    const { data, error } = await this.supabase.client
+      .from(this.TABLE)
+      .update(veiculo)
+      .eq('id', id)
       .select()
       .single();
 
