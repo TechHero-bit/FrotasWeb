@@ -38,6 +38,8 @@ export class SupabaseService {
   private readonly supabase: SupabaseClient;
 
   constructor() {
+    this.assertSupabaseConfig();
+
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
       auth: {
         autoRefreshToken: true,
@@ -149,6 +151,18 @@ export class SupabaseService {
       await this.signOut();
     } catch {
       await this.supabase.auth.signOut({ scope: 'local' });
+    }
+  }
+
+  private assertSupabaseConfig(): void {
+    const hasUrl = environment.supabaseUrl && !environment.supabaseUrl.includes('SEU-PROJETO');
+    const hasAnonKey =
+      environment.supabaseAnonKey && !environment.supabaseAnonKey.includes('SUA_SUPABASE_ANON_KEY');
+
+    if (!hasUrl || !hasAnonKey) {
+      throw new Error(
+        'Supabase nao configurado. Defina SUPABASE_URL e SUPABASE_ANON_KEY no ambiente de build.'
+      );
     }
   }
 }
