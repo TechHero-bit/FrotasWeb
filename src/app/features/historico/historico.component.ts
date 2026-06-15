@@ -119,7 +119,7 @@ export class HistoricoComponent implements OnInit {
       const data = await this.historicoService.getJornadas();
       this.jornadas = data.map(j => ({
         ...j,
-        data_formatada: this.datePipe.transform(j.created_at, 'shortDate')
+        data_formatada: this.datePipe.transform(j.iniciado_em, 'shortDate')
       }));
     } catch (err: any) {
       this.error = 'Erro ao carregar histórico: ' + err.message;

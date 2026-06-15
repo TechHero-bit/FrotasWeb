@@ -20,7 +20,7 @@ export interface Jornada {
   origem: string;
   destino: string;
   status: string;
-  created_at: string;
+  iniciado_em: string;
   hora_inicio?: string;
   hora_fim?: string;
   
@@ -53,7 +53,7 @@ export class HistoricoService {
         checkins (selfie_uri, foto_placa_uri),
         checkouts (*)
       `)
-      .order('created_at', { ascending: false });
+      .order('iniciado_em', { ascending: false });
 
     if (error) throw error;
     

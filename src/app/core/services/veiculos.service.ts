@@ -6,7 +6,6 @@ export interface Veiculo {
   placa: string;
   modelo: string;
   status: string;
-  created_at?: string;
 }
 
 @Injectable({
@@ -21,13 +20,13 @@ export class VeiculosService {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('id', { ascending: false });
 
     if (error) throw error;
     return data || [];
   }
 
-  async addVeiculo(veiculo: Omit<Veiculo, 'id' | 'created_at'>): Promise<Veiculo> {
+  async addVeiculo(veiculo: Omit<Veiculo, 'id'>): Promise<Veiculo> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .insert(veiculo)

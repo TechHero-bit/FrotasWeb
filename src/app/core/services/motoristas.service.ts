@@ -7,7 +7,6 @@ export interface Motorista {
   email: string;
   telefone: string;
   role: string;
-  created_at?: string;
 }
 
 @Injectable({
@@ -23,13 +22,13 @@ export class MotoristasService {
       .from(this.TABLE)
       .select('*')
       .eq('role', 'motorista')
-      .order('created_at', { ascending: false });
+      .order('nome', { ascending: true });
 
     if (error) throw error;
     return data || [];
   }
 
-  async addMotorista(motorista: Omit<Motorista, 'id' | 'role' | 'created_at'>): Promise<Motorista> {
+  async addMotorista(motorista: Omit<Motorista, 'id' | 'role'>): Promise<Motorista> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .insert({ ...motorista, role: 'motorista' })

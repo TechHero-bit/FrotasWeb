@@ -44,6 +44,9 @@
       .icon {
         margin-right: 0.75rem;
         font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       &:hover {
