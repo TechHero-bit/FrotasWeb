@@ -25,19 +25,33 @@
   animation: modal-fade-in 0.2s ease-out;
 }
 
+.modal-container .form-group label {
+  color: var(--text-on-dark, #ffffff);
+}
+
 .modal-container input,
 .modal-container select,
 .modal-container textarea {
-  background-color: var(--panel-dark-muted, #1f2937);
+  background-color: rgba(255, 255, 255, 0.08);
   color: var(--text-on-dark, #ffffff);
-  border-color: var(--panel-dark-border, #4b5563);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.modal-container input::placeholder,
+.modal-container select::placeholder,
+.modal-container textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .modal-container input:focus,
 .modal-container select:focus,
 .modal-container textarea:focus {
+  outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15);
+  background-color: rgba(255, 255, 255, 0.12);
 }
 
 .modal-header {
