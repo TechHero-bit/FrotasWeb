@@ -12,6 +12,7 @@ export const routes: Routes = [
     path: '',
     canActivate: [authGuard],
     canActivateChild: [authChildGuard],
+    loadComponent: () => import('./core/layout/layout.component').then(m => m.LayoutComponent),
     children: [
       {
         path: '',
@@ -32,6 +33,16 @@ export const routes: Routes = [
         path: 'motoristas',
         loadComponent: () =>
           import('./features/motoristas/motoristas.component').then((m) => m.MotoristasComponent)
+      },
+      {
+        path: 'tarefas',
+        loadComponent: () =>
+          import('./features/tarefas/tarefas.component').then((m) => m.TarefasComponent)
+      },
+      {
+        path: 'historico',
+        loadComponent: () =>
+          import('./features/historico/historico.component').then((m) => m.HistoricoComponent)
       }
     ]
   },

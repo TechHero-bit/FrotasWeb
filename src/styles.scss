@@ -79,21 +79,99 @@ a {
   color: inherit;
 }
 
-.dashboard-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 256px 1fr;
-  background: var(--color-gray-100);
+/* Forms and Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  
+  &:hover {
+    opacity: 0.9;
+  }
 }
 
-.dashboard-nav {
-  padding: var(--space-6);
-  background: var(--panel-dark);
-  color: var(--text-on-dark);
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
 }
 
-.dashboard-content {
-  padding: var(--space-8);
+.btn-outline {
+  background-color: transparent;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  
+  &:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+  }
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+}
+
+.form-group {
+  margin-bottom: var(--space-4);
+
+  label {
+    display: block;
+    margin-bottom: var(--space-1);
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-gray-400);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-white);
+    transition: border-color var(--transition-fast);
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+.d-flex {
+  display: flex;
+}
+.justify-content-between {
+  justify-content: space-between;
+}
+.align-items-center {
+  align-items: center;
+}
+.mb-3 {
+  margin-bottom: var(--space-3);
+}
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+.mt-4 {
+  margin-top: var(--space-4);
+}
+.gap-2 {
+  gap: var(--space-2);
+}
+.gap-3 {
+  gap: var(--space-3);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+.text-success {
+  color: var(--color-success);
 }
 
 .monitor-panel {
