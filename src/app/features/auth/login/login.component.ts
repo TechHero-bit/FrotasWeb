@@ -50,7 +50,7 @@ export class LoginComponent {
     } catch (error) {
       this.isRoleError = error instanceof AdminAccessDeniedError;
       this.errorMessage = this.isRoleError
-        ? 'Este painel e restrito a administradores. Use uma conta com permissao adm.'
+        ? 'Este painel e restrito a administradores. Use uma conta com permissao admin.'
         : this.getErrorMessage(error);
     } finally {
       this.loading = false;

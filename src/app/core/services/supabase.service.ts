@@ -9,7 +9,7 @@ import {
 
 import { environment } from '../../../environments/environment';
 
-export const ADMIN_ROLE = 'adm' as const;
+export const ADMIN_ROLE = 'admin' as const;
 
 export interface UsuarioPerfil {
   id: string;
