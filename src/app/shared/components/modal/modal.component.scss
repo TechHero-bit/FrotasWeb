@@ -14,7 +14,7 @@
 
 .modal-container {
   background-color: var(--panel-dark, #111827);
-  color: var(--text-on-dark, #ffffff);
+  color: #f8fafc;
   border-radius: var(--radius-lg, 12px);
   width: 90%;
   max-width: 500px;
@@ -25,8 +25,17 @@
   animation: modal-fade-in 0.2s ease-out;
 }
 
+.modal-container .form-group label,
+.modal-container .modal-body h4,
+.modal-container .modal-body h5,
+.modal-container .modal-body strong,
+.modal-container .modal-body p,
+.modal-container .modal-body span {
+  color: #f8fafc;
+}
+
 .modal-container .form-group label {
-  color: var(--text-on-dark, #ffffff);
+  font-weight: 600;
 }
 
 .modal-container input,
@@ -64,7 +73,8 @@
   h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: var(--text-color, #333);
+    color: #ffffff;
+    letter-spacing: 0.01em;
   }
 
   .close-btn {
@@ -86,6 +96,7 @@
 .modal-body {
   padding: var(--space-4, 1.5rem);
   overflow-y: auto;
+  color: #f8fafc;
 }
 
 @keyframes modal-fade-in {
