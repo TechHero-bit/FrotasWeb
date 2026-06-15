@@ -50,8 +50,8 @@ export class HistoricoService {
         *,
         usuarios (nome),
         veiculos (placa, modelo),
-        checkins (selfie_uri, foto_placa_uri),
-        checkouts (*)
+        checkins!jornada_id (selfie_uri, foto_placa_uri),
+        checkouts!jornada_id (*)
       `)
       .order('iniciado_em', { ascending: false });
 
