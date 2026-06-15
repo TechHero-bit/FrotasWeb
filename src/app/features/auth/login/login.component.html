@@ -1,0 +1,50 @@
+<main class="login-page">
+  <section class="login-panel" aria-labelledby="login-title">
+    <div class="brand-block">
+      <span class="brand-mark">FW</span>
+      <div>
+        <p class="eyebrow">Frotas Web</p>
+        <h1 id="login-title">Acesso administrativo</h1>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form" novalidate>
+      <label class="field">
+        <span>E-mail</span>
+        <input
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="gestor@empresa.com"
+          [class.invalid]="fieldHasError('email')"
+        >
+        <small *ngIf="fieldHasError('email')">Informe um e-mail valido.</small>
+      </label>
+
+      <label class="field">
+        <span>Senha</span>
+        <input
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          placeholder="Digite sua senha"
+          [class.invalid]="fieldHasError('password')"
+        >
+        <small *ngIf="fieldHasError('password')">A senha deve ter pelo menos 6 caracteres.</small>
+      </label>
+
+      <p
+        *ngIf="errorMessage"
+        class="login-error"
+        [class.role-error]="isRoleError"
+        role="alert"
+      >
+        {{ errorMessage }}
+      </p>
+
+      <button type="submit" class="submit-button" [disabled]="loading">
+        {{ loading ? 'Validando...' : 'Entrar no dashboard' }}
+      </button>
+    </form>
+  </section>
+</main>
