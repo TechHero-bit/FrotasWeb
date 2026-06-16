@@ -2,24 +2,25 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Subject, from, combineLatest, of } from 'rxjs';
-import { takeUntil, catchError, map, startWith } from 'rxjs/operators';
+import { takeUntil, catchError, map } from 'rxjs/operators';
 
 import { MotoristasService, Motorista } from '../../core/services/motoristas.service';
 import { VeiculosService, Veiculo } from '../../core/services/veiculos.service';
 import { TarefasService, Tarefa } from '../../core/services/tarefas.service';
+import { HistoricoService, Jornada } from '../../core/services/historico.service';
 
 interface DashboardMetrics {
-  totalClientes: number;
+  totalUsuarios: number;
   totalVeiculos: number;
-  totalOrdens: number;
-  ordens: Tarefa[];
-  ordensPendentes: number;
-  ordensEmAndamento: number;
-  ordensConcluidas: number;
-  pctPendentes: number;
+  totalCorridas: number;
+  tarefas: Tarefa[];
+  tarefasNaoIniciadas: number;
+  tarefasEmAndamento: number;
+  tarefasFinalizadas: number;
+  pctNaoIniciadas: number;
   pctEmAndamento: number;
-  pctConcluidas: number;
-  ordensRecentes: Tarefa[];
+  pctFinalizadas: number;
+  historicosRecentes: Jornada[];
 }
 
 @Component({
@@ -31,7 +32,7 @@ interface DashboardMetrics {
     <div class="page-header">
       <div class="header-text">
         <h1>Dashboard</h1>
-        <p>Visão geral da sua oficina</p>
+        <p>Visão geral da sua frota</p>
       </div>
       <div class="header-date">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -56,8 +57,8 @@ interface DashboardMetrics {
     @if (!isLoading && metrics) {
       <!-- Stats Grid -->
       <div class="stats-grid">
-        <!-- Card: Clientes -->
-        <div class="stat-card" id="stat-clientes">
+        <!-- Card: Usuários -->
+        <div class="stat-card" id="stat-usuarios">
           <div class="stat-icon icon-clients">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -68,8 +69,8 @@ interface DashboardMetrics {
             </svg>
           </div>
           <div class="stat-info">
-            <span class="stat-value">{{ metrics.totalClientes }}</span>
-            <span class="stat-label">Total de Clientes</span>
+            <span class="stat-value">{{ metrics.totalUsuarios }}</span>
+            <span class="stat-label">Total de Usuários</span>
           </div>
         </div>
 
@@ -91,8 +92,8 @@ interface DashboardMetrics {
           </div>
         </div>
 
-        <!-- Card: Ordens de Serviço -->
-        <div class="stat-card" id="stat-ordens">
+        <!-- Card: Corridas -->
+        <div class="stat-card" id="stat-corridas">
           <div class="stat-icon icon-orders">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -105,39 +106,39 @@ interface DashboardMetrics {
             </svg>
           </div>
           <div class="stat-info">
-            <span class="stat-value">{{ metrics.totalOrdens }}</span>
-            <span class="stat-label">Total de Ordens</span>
+            <span class="stat-value">{{ metrics.totalCorridas }}</span>
+            <span class="stat-label">Quantidade de Corridas</span>
           </div>
         </div>
       </div>
 
       <!-- Content Grid: Status + Recent Orders -->
       <div class="content-grid">
-        <!-- Status das Ordens -->
-        <div class="card status-card" id="status-ordens">
+        <!-- Status das Tarefas -->
+        <div class="card status-card" id="status-tarefas">
           <div class="card-header">
             <h3>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
               </svg>
-              Status das Ordens
+              Status das Tarefas
             </h3>
-            <span class="card-count">{{ metrics.totalOrdens }} total</span>
+            <span class="card-count">{{ metrics.tarefas.length }} total</span>
           </div>
           <div class="card-body">
-            <!-- Pendentes -->
+            <!-- Não Iniciadas -->
             <div class="status-item">
               <div class="status-label">
                 <span class="status-dot dot-pending"></span>
-                Pendentes
+                Não Iniciadas
               </div>
               <div class="status-bar-wrapper">
                 <div class="status-bar">
                   <div class="status-bar-fill fill-pending"
-                       [style.width.%]="metrics.pctPendentes"></div>
+                       [style.width.%]="metrics.pctNaoIniciadas"></div>
                 </div>
-                <span class="status-count">{{ metrics.ordensPendentes }}</span>
+                <span class="status-count">{{ metrics.tarefasNaoIniciadas }}</span>
               </div>
             </div>
 
@@ -152,29 +153,29 @@ interface DashboardMetrics {
                   <div class="status-bar-fill fill-progress"
                        [style.width.%]="metrics.pctEmAndamento"></div>
                 </div>
-                <span class="status-count">{{ metrics.ordensEmAndamento }}</span>
+                <span class="status-count">{{ metrics.tarefasEmAndamento }}</span>
               </div>
             </div>
 
-            <!-- Concluídas -->
+            <!-- Finalizadas -->
             <div class="status-item">
               <div class="status-label">
                 <span class="status-dot dot-done"></span>
-                Concluídas
+                Finalizadas
               </div>
               <div class="status-bar-wrapper">
                 <div class="status-bar">
                   <div class="status-bar-fill fill-done"
-                       [style.width.%]="metrics.pctConcluidas"></div>
+                       [style.width.%]="metrics.pctFinalizadas"></div>
                 </div>
-                <span class="status-count">{{ metrics.ordensConcluidas }}</span>
+                <span class="status-count">{{ metrics.tarefasFinalizadas }}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Ordens Recentes -->
-        <div class="card recent-orders-card" id="recent-orders">
+        <!-- Históricos Recentes -->
+        <div class="card recent-orders-card" id="recent-histories">
           <div class="card-header">
             <h3>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -183,12 +184,12 @@ interface DashboardMetrics {
                 <path d="M3 3v5h5"/>
                 <path d="M12 7v5l4 2"/>
               </svg>
-              Ordens Recentes
+              Históricos Recentes
             </h3>
-            <span class="card-count">Últimas {{ metrics.ordensRecentes.length }}</span>
+            <span class="card-count">Últimas {{ metrics.historicosRecentes.length }}</span>
           </div>
 
-          @if (metrics.ordensRecentes.length === 0) {
+          @if (metrics.historicosRecentes.length === 0) {
             <div class="empty-state">
               <div class="empty-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -198,16 +199,16 @@ interface DashboardMetrics {
                   <path d="M9 14l2 2 4-4"/>
                 </svg>
               </div>
-              <h4>Nenhuma ordem encontrada</h4>
-              <p>Comece criando uma nova ordem de serviço.</p>
+              <h4>Nenhum histórico encontrado</h4>
+              <p>Os registros de jornadas aparecerão aqui.</p>
             </div>
           } @else {
             <ul class="order-list">
-              @for (order of metrics.ordensRecentes; track order.id) {
+              @for (historico of metrics.historicosRecentes; track historico.id) {
                 <li class="order-item">
-                  <div class="order-status-icon" [ngClass]="getStatusIconClass(order.status)">
+                  <div class="order-status-icon" [ngClass]="getStatusIconClass(historico.status)">
                     <!-- Pending icon -->
-                    @if (isStatusPending(order.status)) {
+                    @if (isStatusPending(historico.status)) {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
@@ -215,7 +216,7 @@ interface DashboardMetrics {
                       </svg>
                     }
                     <!-- In progress icon -->
-                    @if (isStatusInProgress(order.status)) {
+                    @if (isStatusInProgress(historico.status)) {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2v4"/>
@@ -229,7 +230,7 @@ interface DashboardMetrics {
                       </svg>
                     }
                     <!-- Done icon -->
-                    @if (isStatusDone(order.status)) {
+                    @if (isStatusDone(historico.status)) {
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
@@ -238,11 +239,11 @@ interface DashboardMetrics {
                     }
                   </div>
                   <div class="order-info">
-                    <div class="order-title">OS #{{ order.id.substring(0, 8).toUpperCase() }} — {{ order.titulo }}</div>
-                    <div class="order-meta">{{ order.motorista_nome }} · {{ formatDate(order.data_limite) }}</div>
+                    <div class="order-title">{{ historico.motorista_nome }} · {{ historico.veiculo_placa }}</div>
+                    <div class="order-meta">{{ historico.origem }} ➔ {{ historico.destino }}</div>
                   </div>
-                  <span class="order-badge" [ngClass]="getStatusBadgeClass(order.status)">
-                    {{ order.status }}
+                  <span class="order-badge" [ngClass]="getStatusBadgeClass(historico.status)">
+                    {{ historico.status }}
                   </span>
                 </li>
               }
@@ -264,8 +265,8 @@ interface DashboardMetrics {
         </div>
         <div class="card-body">
           <div class="actions-grid">
-            <!-- Novo Cliente -->
-            <a routerLink="/usuarios" class="action-btn" id="action-novo-cliente">
+            <!-- Novo Usuário -->
+            <a routerLink="/usuarios" class="action-btn" id="action-novo-usuario">
               <div class="action-icon icon-client">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -276,8 +277,8 @@ interface DashboardMetrics {
                 </svg>
               </div>
               <div class="action-text">
-                <div class="action-title">Novo Cliente</div>
-                <div class="action-desc">Cadastrar um novo cliente</div>
+                <div class="action-title">Novo Usuário</div>
+                <div class="action-desc">Cadastrar um novo usuário</div>
               </div>
               <svg class="action-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -307,8 +308,8 @@ interface DashboardMetrics {
               </svg>
             </a>
 
-            <!-- Nova Ordem -->
-            <a routerLink="/tarefas" class="action-btn" id="action-nova-ordem">
+            <!-- Nova Tarefa -->
+            <a routerLink="/tarefas" class="action-btn" id="action-nova-tarefa">
               <div class="action-icon icon-order">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -319,8 +320,8 @@ interface DashboardMetrics {
                 </svg>
               </div>
               <div class="action-text">
-                <div class="action-title">Nova Ordem</div>
-                <div class="action-desc">Abrir nova ordem de serviço</div>
+                <div class="action-title">Nova Tarefa</div>
+                <div class="action-desc">Atribuir nova tarefa</div>
               </div>
               <svg class="action-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -344,7 +345,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private motoristasService: MotoristasService,
     private veiculosService: VeiculosService,
-    private tarefasService: TarefasService
+    private tarefasService: TarefasService,
+    private historicoService: HistoricoService
   ) {
     this.currentDate = this.formatCurrentDate();
   }
@@ -359,7 +361,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadDashboardData(): void {
-    const clientes$ = from(this.motoristasService.getMotoristas()).pipe(
+    const usuarios$ = from(this.motoristasService.getMotoristas()).pipe(
       catchError(() => of([] as Motorista[]))
     );
 
@@ -367,14 +369,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
       catchError(() => of([] as Veiculo[]))
     );
 
-    const ordens$ = from(this.tarefasService.getTarefas()).pipe(
+    const tarefas$ = from(this.tarefasService.getTarefas()).pipe(
       catchError(() => of([] as Tarefa[]))
     );
 
-    combineLatest([clientes$, veiculos$, ordens$])
+    const historicos$ = from(this.historicoService.getJornadas()).pipe(
+      catchError(() => of([] as Jornada[]))
+    );
+
+    combineLatest([usuarios$, veiculos$, tarefas$, historicos$])
       .pipe(
         takeUntil(this.destroy$),
-        map(([clientes, veiculos, ordens]) => this.computeMetrics(clientes, veiculos, ordens))
+        map(([usuarios, veiculos, tarefas, historicos]) => this.computeMetrics(usuarios, veiculos, tarefas, historicos))
       )
       .subscribe({
         next: (metrics) => {
@@ -388,87 +394,80 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private computeMetrics(
-    clientes: Motorista[],
+    usuarios: Motorista[],
     veiculos: Veiculo[],
-    ordens: Tarefa[]
+    tarefas: Tarefa[],
+    historicos: Jornada[]
   ): DashboardMetrics {
-    const total = ordens.length;
+    const totalTarefas = tarefas.length;
 
-    const ordensPendentes = ordens.filter(o =>
-      this.normalizeStatus(o.status) === 'pendente'
+    const tarefasNaoIniciadas = tarefas.filter(o =>
+      this.normalizeStatus(o.status) === 'pendente' || this.normalizeStatus(o.status) === 'nao iniciada'
     ).length;
 
-    const ordensEmAndamento = ordens.filter(o =>
-      this.normalizeStatus(o.status) === 'em andamento'
+    const tarefasEmAndamento = tarefas.filter(o =>
+      this.normalizeStatus(o.status) === 'em andamento' || this.normalizeStatus(o.status) === 'andamento'
     ).length;
 
-    const ordensConcluidas = ordens.filter(o =>
-      this.normalizeStatus(o.status) === 'concluída'
+    const tarefasFinalizadas = tarefas.filter(o =>
+      this.normalizeStatus(o.status) === 'concluida' || this.normalizeStatus(o.status) === 'finalizada'
     ).length;
 
-    const pctPendentes = total > 0 ? (ordensPendentes / total) * 100 : 0;
-    const pctEmAndamento = total > 0 ? (ordensEmAndamento / total) * 100 : 0;
-    const pctConcluidas = total > 0 ? (ordensConcluidas / total) * 100 : 0;
+    const pctNaoIniciadas = totalTarefas > 0 ? (tarefasNaoIniciadas / totalTarefas) * 100 : 0;
+    const pctEmAndamento = totalTarefas > 0 ? (tarefasEmAndamento / totalTarefas) * 100 : 0;
+    const pctFinalizadas = totalTarefas > 0 ? (tarefasFinalizadas / totalTarefas) * 100 : 0;
 
     // Sort by date descending and take 5 most recent
-    const ordensRecentes = [...ordens]
+    const historicosRecentes = [...historicos]
       .sort((a, b) => {
-        const dateA = new Date(a.data_limite).getTime();
-        const dateB = new Date(b.data_limite).getTime();
+        const dateA = new Date(a.iniciado_em).getTime();
+        const dateB = new Date(b.iniciado_em).getTime();
         return dateB - dateA;
       })
       .slice(0, 5);
 
     return {
-      totalClientes: clientes.length,
+      totalUsuarios: usuarios.length,
       totalVeiculos: veiculos.length,
-      totalOrdens: total,
-      ordens,
-      ordensPendentes,
-      ordensEmAndamento,
-      ordensConcluidas,
-      pctPendentes,
+      totalCorridas: historicos.length,
+      tarefas,
+      tarefasNaoIniciadas,
+      tarefasEmAndamento,
+      tarefasFinalizadas,
+      pctNaoIniciadas,
       pctEmAndamento,
-      pctConcluidas,
-      ordensRecentes
+      pctFinalizadas,
+      historicosRecentes
     };
   }
 
   // ── Template Helpers ──
 
   isStatusPending(status: string): boolean {
-    return this.normalizeStatus(status) === 'pendente';
+    const s = this.normalizeStatus(status);
+    return s === 'pendente' || s === 'nao iniciada';
   }
 
   isStatusInProgress(status: string): boolean {
-    return this.normalizeStatus(status) === 'em andamento';
+    const s = this.normalizeStatus(status);
+    return s === 'em andamento' || s === 'andamento';
   }
 
   isStatusDone(status: string): boolean {
-    return this.normalizeStatus(status) === 'concluída';
+    const s = this.normalizeStatus(status);
+    return s === 'concluida' || s === 'finalizada';
   }
 
   getStatusIconClass(status: string): string {
-    const s = this.normalizeStatus(status);
-    if (s === 'pendente') return 'icon-pending';
-    if (s === 'em andamento') return 'icon-progress';
+    if (this.isStatusPending(status)) return 'icon-pending';
+    if (this.isStatusInProgress(status)) return 'icon-progress';
     return 'icon-done';
   }
 
   getStatusBadgeClass(status: string): string {
-    const s = this.normalizeStatus(status);
-    if (s === 'pendente') return 'badge-pending';
-    if (s === 'em andamento') return 'badge-progress';
+    if (this.isStatusPending(status)) return 'badge-pending';
+    if (this.isStatusInProgress(status)) return 'badge-progress';
     return 'badge-done';
-  }
-
-  formatDate(dateStr: string): string {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
   }
 
   private formatCurrentDate(): string {
@@ -485,8 +484,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private normalizeStatus(status: string): string {
-    return (status || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      // Re-add the expected accented form after normalization for matching
-      .replace('concluida', 'concluída');
+    return (status || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
 }
