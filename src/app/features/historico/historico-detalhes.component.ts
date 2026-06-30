@@ -180,7 +180,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     try {
       this.loading = true;
       const jornadas = await this.historicoService.getJornadas();
-      const jornada = jornadas.find(j => j.id === id);
+      const jornada = jornadas.find(j => j.id.toString() === id.toString());
       
       if (jornada) {
         this.jornada = jornada;
