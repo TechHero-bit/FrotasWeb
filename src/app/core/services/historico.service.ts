@@ -33,8 +33,13 @@ export interface Jornada {
   destino: string;
   status: string;
   iniciado_em: string;
+  encerrado_em?: string;
   hora_inicio?: string;
   hora_fim?: string;
+  origem_latitude?: number;
+  origem_longitude?: number;
+  destino_latitude?: number;
+  destino_longitude?: number;
   
   // Relações
   usuarios?: Partial<Motorista>;

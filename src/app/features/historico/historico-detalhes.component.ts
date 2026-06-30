@@ -9,6 +9,7 @@ interface PhotoSlot {
   label: string;
   uri?: string;
   loaded?: boolean;
+  error?: boolean;
 }
 
 @Component({
@@ -57,11 +58,11 @@ interface PhotoSlot {
               <div class="info-row mt-3">
                 <div class="info-group">
                   <span class="label">Início</span>
-                  <span class="value">{{ jornada.hora_inicio ? (jornada.hora_inicio | date:'short') : 'N/A' }}</span>
+                  <span class="value">{{ (jornada.hora_inicio || jornada.iniciado_em) ? ((jornada.hora_inicio || jornada.iniciado_em) | date:'short') : 'N/A' }}</span>
                 </div>
                 <div class="info-group">
                   <span class="label">Término</span>
-                  <span class="value">{{ jornada.hora_fim ? (jornada.hora_fim | date:'short') : 'N/A' }}</span>
+                  <span class="value">{{ (jornada.hora_fim || jornada.encerrado_em) ? ((jornada.hora_fim || jornada.encerrado_em) | date:'short') : 'N/A' }}</span>
                 </div>
               </div>
             </div>
@@ -102,10 +103,10 @@ interface PhotoSlot {
               <div class="photos-grid mb-3">
                 @for (photo of checkinPhotos; track photo.label) {
                   <div class="photo-item">
-                    @if (photo.uri) {
-                      <div class="img-wrapper">
+                    @if (photo.uri && !photo.error) {
+                      <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
                         <div class="skeleton" *ngIf="!photo.loaded"></div>
-                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" [style.opacity]="photo.loaded ? 1 : 0">
+                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
                       </div>
                     } @else {
                       <div class="photo-placeholder">
@@ -121,10 +122,10 @@ interface PhotoSlot {
               <div class="photos-grid">
                 @for (photo of checkoutPhotos; track photo.label) {
                   <div class="photo-item">
-                    @if (photo.uri) {
-                      <div class="img-wrapper">
+                    @if (photo.uri && !photo.error) {
+                      <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
                         <div class="skeleton" *ngIf="!photo.loaded"></div>
-                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" [style.opacity]="photo.loaded ? 1 : 0">
+                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
                       </div>
                     } @else {
                       <div class="photo-placeholder">
@@ -151,6 +152,13 @@ interface PhotoSlot {
         </div>
       </div>
     }
+
+    @if (expandedPhoto) {
+      <div class="photo-modal" (click)="expandedPhoto = null">
+        <button class="btn-close" (click)="expandedPhoto = null" title="Fechar">✕</button>
+        <img [src]="expandedPhoto" (click)="$event.stopPropagation()">
+      </div>
+    }
   `,
   styleUrls: ['./historico-detalhes.component.scss']
 })
@@ -161,6 +169,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
 
   checkinPhotos: PhotoSlot[] = [];
   checkoutPhotos: PhotoSlot[] = [];
+  expandedPhoto: string | null = null;
 
   @ViewChild('mapContainer') private mapContainer!: ElementRef<HTMLElement>;
   private map: maplibregl.Map | null = null;
@@ -215,25 +224,36 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
 
     // Build Check-in Slots
     const cin = this.jornada.checkins && this.jornada.checkins.length > 0 ? this.jornada.checkins[0] : null;
+    const cinVeiculoFotos = cin?.foto_placa_uri ? cin.foto_placa_uri.split(',') : [];
+
     this.checkinPhotos = [
       { label: 'Painel', uri: cin?.foto_painel_uri },
       { label: 'Selfie', uri: cin?.selfie_uri },
-      { label: 'Frente', uri: cin?.foto_frente_uri },
-      { label: 'Lat. Direita', uri: cin?.foto_lateral_direita_uri },
-      { label: 'Lat. Esquerda', uri: cin?.foto_lateral_esquerda_uri },
-      { label: 'Traseira', uri: cin?.foto_traseira_uri || cin?.foto_placa_uri },
+      { label: 'Frente', uri: cinVeiculoFotos[0] || cin?.foto_frente_uri },
+      { label: 'Lat. Direita', uri: cinVeiculoFotos[1] || cin?.foto_lateral_direita_uri },
+      { label: 'Lat. Esquerda', uri: cinVeiculoFotos[2] || cin?.foto_lateral_esquerda_uri },
+      { label: 'Traseira', uri: cinVeiculoFotos[3] || cin?.foto_traseira_uri },
     ];
 
     // Build Check-out Slots
     const cout = this.jornada.checkouts && this.jornada.checkouts.length > 0 ? this.jornada.checkouts[0] : null;
+    const coutVeiculoFotos = cout?.foto_veiculo_uri ? cout.foto_veiculo_uri.split(',') : [];
+
     this.checkoutPhotos = [
       { label: 'Painel', uri: cout?.foto_painel_uri },
       { label: 'Selfie', uri: cout?.selfie_uri },
-      { label: 'Frente', uri: cout?.foto_frente_uri },
-      { label: 'Lat. Direita', uri: cout?.foto_lateral_direita_uri },
-      { label: 'Lat. Esquerda', uri: cout?.foto_lateral_esquerda_uri },
-      { label: 'Traseira', uri: cout?.foto_traseira_uri || cout?.foto_veiculo_uri },
+      { label: 'Frente', uri: coutVeiculoFotos[0] || cout?.foto_frente_uri },
+      { label: 'Lat. Direita', uri: coutVeiculoFotos[1] || cout?.foto_lateral_direita_uri },
+      { label: 'Lat. Esquerda', uri: coutVeiculoFotos[2] || cout?.foto_lateral_esquerda_uri },
+      { label: 'Traseira', uri: coutVeiculoFotos[3] || cout?.foto_traseira_uri },
     ];
+  }
+
+  expandPhoto(uri?: string) {
+    if (uri) {
+      this.expandedPhoto = uri;
+      this.cdr.markForCheck();
+    }
   }
 
   ngAfterViewInit() {
@@ -254,10 +274,13 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     this.map.addControl(new maplibregl.NavigationControl(), 'top-right');
     this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
-    // Simulate database coordinates based on origin/destination
-    // If coords are in the DB in the future, just replace these with jornada.origem_lat etc.
-    const origin: [number, number] = [-43.18223, -22.90642]; // Centro RJ
-    const destination: [number, number] = [-43.1755, -22.9688]; // Copacabana
+    const origin: [number, number] = this.jornada?.origem_longitude && this.jornada?.origem_latitude
+      ? [this.jornada.origem_longitude, this.jornada.origem_latitude]
+      : [-43.18223, -22.90642]; // Fallback if no data
+
+    const destination: [number, number] = this.jornada?.destino_longitude && this.jornada?.destino_latitude
+      ? [this.jornada.destino_longitude, this.jornada.destino_latitude]
+      : [-43.1755, -22.9688]; // Fallback if no data
 
     new maplibregl.Marker({ color: '#6C757D' })
       .setLngLat(origin)
@@ -274,6 +297,32 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
       .extend(destination);
     
     this.map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+
+    // Try to fetch and draw the polyline route
+    this.map.on('load', async () => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${origin[0]},${origin[1]};${destination[0]},${destination[1]}?overview=full&geometries=geojson&steps=false`;
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.routes && data.routes.length > 0) {
+            const geometry = data.routes[0].geometry;
+            if (this.map) {
+              this.map.addSource('route', { type: 'geojson', data: geometry });
+              this.map.addLayer({
+                id: 'route-line',
+                type: 'line',
+                source: 'route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': '#0d6efd', 'line-width': 5, 'line-opacity': 0.8 }
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao buscar a polyline da rota OSRM', e);
+      }
+    });
   }
 
   ngOnDestroy() {
