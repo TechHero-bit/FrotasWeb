@@ -77,4 +77,11 @@
   flex-grow: 1;
   padding: var(--space-5, 2rem);
   overflow-y: auto;
+  position: relative;
+}
+
+.route-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
 }

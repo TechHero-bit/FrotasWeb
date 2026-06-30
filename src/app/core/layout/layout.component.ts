@@ -1,11 +1,29 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router, RouterModule } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
+import { trigger, transition, style, animate, query, group } from '@angular/animations';
+
+const pageTransition = trigger('routeAnimation', [
+  transition('* <=> *', [
+    query(':enter', [
+      style({ opacity: 0, transform: 'translateY(14px)' })
+    ], { optional: true }),
+    group([
+      query(':leave', [
+        animate('180ms ease-out', style({ opacity: 0, transform: 'translateY(-8px)' }))
+      ], { optional: true }),
+      query(':enter', [
+        animate('220ms 80ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ], { optional: true })
+    ])
+  ])
+]);
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, RouterModule],
+  animations: [pageTransition],
   template: `
     <div class="app-layout">
       <aside class="sidebar">
@@ -35,7 +53,9 @@ import { SupabaseService } from '../services/supabase.service';
       </aside>
 
       <main class="main-content">
-        <router-outlet></router-outlet>
+        <div [@routeAnimation]="getRouteAnimation(outlet)" class="route-wrapper">
+          <router-outlet #outlet="outlet"></router-outlet>
+        </div>
       </main>
     </div>
   `,
@@ -43,6 +63,11 @@ import { SupabaseService } from '../services/supabase.service';
 })
 export class LayoutComponent {
   constructor(private supabase: SupabaseService, private router: Router) {}
+
+  getRouteAnimation(outlet: RouterOutlet): string {
+    return outlet?.activatedRouteData?.['animation'] ??
+      (outlet.isActivated ? outlet.activatedRoute.snapshot.url.join('/') || 'root' : 'none');
+  }
 
   async logout() {
     await this.supabase.signOut();
