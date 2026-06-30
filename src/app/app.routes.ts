@@ -43,6 +43,11 @@ export const routes: Routes = [
         path: 'historico',
         loadComponent: () =>
           import('./features/historico/historico.component').then((m) => m.HistoricoComponent)
+      },
+      {
+        path: 'historico/:id',
+        loadComponent: () =>
+          import('./features/historico/historico-detalhes.component').then((m) => m.HistoricoDetalhesComponent)
       }
     ]
   },
