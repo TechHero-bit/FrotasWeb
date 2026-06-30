@@ -1,15 +1,22 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DatePipe, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HistoricoService, Jornada } from '../../core/services/historico.service';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
+interface PhotoSlot {
+  label: string;
+  uri?: string;
+  loaded?: boolean;
+}
+
 @Component({
   selector: 'app-historico-detalhes',
   standalone: true,
   imports: [CommonModule],
   providers: [DatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="header d-flex align-items-center gap-3 mb-4">
       <button class="btn btn-outline btn-icon" (click)="voltar()" title="Voltar">
@@ -91,45 +98,43 @@ import 'maplibre-gl/dist/maplibre-gl.css';
               <h3>Galeria de Evidências</h3>
             </div>
             <div class="card-body">
-              @if (jornada.checkins && jornada.checkins.length > 0) {
-                <h4 class="section-title">Check-in</h4>
-                <div class="photos-grid mb-3">
-                  @if (jornada.checkins[0].selfie_uri) {
-                    <div class="photo-item">
-                      <img [src]="jornada.checkins[0].selfie_uri" alt="Selfie Check-in">
-                      <span class="photo-caption">Selfie</span>
-                    </div>
-                  }
-                  @if (jornada.checkins[0].foto_placa_uri) {
-                    <div class="photo-item">
-                      <img [src]="jornada.checkins[0].foto_placa_uri" alt="Placa Check-in">
-                      <span class="photo-caption">Placa</span>
-                    </div>
-                  }
-                </div>
-              }
+              <h4 class="section-title">Check-in</h4>
+              <div class="photos-grid mb-3">
+                @for (photo of checkinPhotos; track photo.label) {
+                  <div class="photo-item">
+                    @if (photo.uri) {
+                      <div class="img-wrapper">
+                        <div class="skeleton" *ngIf="!photo.loaded"></div>
+                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" [style.opacity]="photo.loaded ? 1 : 0">
+                      </div>
+                    } @else {
+                      <div class="photo-placeholder">
+                        <span class="text-muted">Foto não registrada</span>
+                      </div>
+                    }
+                    <span class="photo-caption">{{ photo.label }}</span>
+                  </div>
+                }
+              </div>
 
-              @if (jornada.checkouts && jornada.checkouts.length > 0) {
-                <h4 class="section-title">Check-out</h4>
-                <div class="photos-grid">
-                  @if (jornada.checkouts[0].selfie_uri) {
-                    <div class="photo-item">
-                      <img [src]="jornada.checkouts[0].selfie_uri" alt="Selfie Check-out">
-                      <span class="photo-caption">Selfie</span>
-                    </div>
-                  }
-                  @if (jornada.checkouts[0].foto_veiculo_uri) {
-                    <div class="photo-item">
-                      <img [src]="jornada.checkouts[0].foto_veiculo_uri" alt="Veículo Check-out">
-                      <span class="photo-caption">Veículo</span>
-                    </div>
-                  }
-                </div>
-              }
-
-              @if ((!jornada.checkins || jornada.checkins.length === 0) && (!jornada.checkouts || jornada.checkouts.length === 0)) {
-                <p class="text-muted text-center py-4">Nenhuma evidência fotográfica disponível.</p>
-              }
+              <h4 class="section-title">Check-out</h4>
+              <div class="photos-grid">
+                @for (photo of checkoutPhotos; track photo.label) {
+                  <div class="photo-item">
+                    @if (photo.uri) {
+                      <div class="img-wrapper">
+                        <div class="skeleton" *ngIf="!photo.loaded"></div>
+                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" [style.opacity]="photo.loaded ? 1 : 0">
+                      </div>
+                    } @else {
+                      <div class="photo-placeholder">
+                        <span class="text-muted">Foto não registrada</span>
+                      </div>
+                    }
+                    <span class="photo-caption">{{ photo.label }}</span>
+                  </div>
+                }
+              </div>
             </div>
           </div>
 
@@ -154,6 +159,9 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   loading = true;
   error: string | null = null;
 
+  checkinPhotos: PhotoSlot[] = [];
+  checkoutPhotos: PhotoSlot[] = [];
+
   @ViewChild('mapContainer') private mapContainer!: ElementRef<HTMLElement>;
   private map: maplibregl.Map | null = null;
 
@@ -161,7 +169,8 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     private route: ActivatedRoute,
     private router: Router,
     private location: Location,
-    private historicoService: HistoricoService
+    private historicoService: HistoricoService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -172,6 +181,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
       } else {
         this.error = 'ID da jornada não fornecido.';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -179,11 +189,13 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   async loadJornadaDetails(id: string) {
     try {
       this.loading = true;
+      this.cdr.markForCheck();
       const jornadas = await this.historicoService.getJornadas();
       const jornada = jornadas.find(j => j.id.toString() === id.toString());
       
       if (jornada) {
         this.jornada = jornada;
+        this.buildPhotoSlots();
       } else {
         this.error = 'Jornada não encontrada.';
       }
@@ -191,11 +203,37 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
       this.error = 'Erro ao carregar detalhes: ' + err.message;
     } finally {
       this.loading = false;
+      this.cdr.markForCheck();
       if (this.jornada) {
-        // Wait a tick for the view child to be rendered
         setTimeout(() => this.initMap(), 100);
       }
     }
+  }
+
+  buildPhotoSlots() {
+    if (!this.jornada) return;
+
+    // Build Check-in Slots
+    const cin = this.jornada.checkins && this.jornada.checkins.length > 0 ? this.jornada.checkins[0] : null;
+    this.checkinPhotos = [
+      { label: 'Painel', uri: cin?.foto_painel_uri },
+      { label: 'Selfie', uri: cin?.selfie_uri },
+      { label: 'Frente', uri: cin?.foto_frente_uri },
+      { label: 'Lat. Direita', uri: cin?.foto_lateral_direita_uri },
+      { label: 'Lat. Esquerda', uri: cin?.foto_lateral_esquerda_uri },
+      { label: 'Traseira', uri: cin?.foto_traseira_uri || cin?.foto_placa_uri },
+    ];
+
+    // Build Check-out Slots
+    const cout = this.jornada.checkouts && this.jornada.checkouts.length > 0 ? this.jornada.checkouts[0] : null;
+    this.checkoutPhotos = [
+      { label: 'Painel', uri: cout?.foto_painel_uri },
+      { label: 'Selfie', uri: cout?.selfie_uri },
+      { label: 'Frente', uri: cout?.foto_frente_uri },
+      { label: 'Lat. Direita', uri: cout?.foto_lateral_direita_uri },
+      { label: 'Lat. Esquerda', uri: cout?.foto_lateral_esquerda_uri },
+      { label: 'Traseira', uri: cout?.foto_traseira_uri || cout?.foto_veiculo_uri },
+    ];
   }
 
   ngAfterViewInit() {
@@ -205,23 +243,37 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   initMap() {
     if (!this.mapContainer || this.map) return;
 
-    // São Paulo default center
-    const defaultCenter: [number, number] = [-46.6333, -23.5505];
-
     this.map = new maplibregl.Map({
       container: this.mapContainer.nativeElement,
       style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap style
-      center: defaultCenter,
+      center: [-43.18, -22.92], // Default fallback
       zoom: 12,
       attributionControl: false
     });
 
     this.map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
-    new maplibregl.Marker({ color: '#B91C1C' })
-      .setLngLat(defaultCenter)
-      .setPopup(new maplibregl.Popup().setHTML('<h5>Ponto de Referência</h5>'))
+    // Simulate database coordinates based on origin/destination
+    // If coords are in the DB in the future, just replace these with jornada.origem_lat etc.
+    const origin: [number, number] = [-43.18223, -22.90642]; // Centro RJ
+    const destination: [number, number] = [-43.1755, -22.9688]; // Copacabana
+
+    new maplibregl.Marker({ color: '#6C757D' })
+      .setLngLat(origin)
+      .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML('<h5>Origem</h5><p>' + (this.jornada?.origem || '') + '</p>'))
       .addTo(this.map);
+
+    new maplibregl.Marker({ color: '#28A745' })
+      .setLngLat(destination)
+      .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML('<h5>Destino</h5><p>' + (this.jornada?.destino || '') + '</p>'))
+      .addTo(this.map);
+
+    const bounds = new maplibregl.LngLatBounds()
+      .extend(origin)
+      .extend(destination);
+    
+    this.map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
   }
 
   ngOnDestroy() {
@@ -241,3 +293,4 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     return 'badge-done';
   }
 }
+

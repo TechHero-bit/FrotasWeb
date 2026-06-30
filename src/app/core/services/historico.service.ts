@@ -4,14 +4,24 @@ import { Motorista } from './motoristas.service';
 import { Veiculo } from './veiculos.service';
 
 export interface Checkin {
-  selfie_uri: string;
-  foto_placa_uri: string;
+  foto_painel_uri?: string;
+  selfie_uri?: string;
+  foto_frente_uri?: string;
+  foto_lateral_direita_uri?: string;
+  foto_lateral_esquerda_uri?: string;
+  foto_traseira_uri?: string;
+  foto_placa_uri?: string; // Mantido para compatibilidade
 }
 
 export interface Checkout {
   id?: string;
+  foto_painel_uri?: string;
   selfie_uri?: string;
-  foto_veiculo_uri?: string;
+  foto_frente_uri?: string;
+  foto_lateral_direita_uri?: string;
+  foto_lateral_esquerda_uri?: string;
+  foto_traseira_uri?: string;
+  foto_veiculo_uri?: string; // Mantido para compatibilidade
   observacoes?: string;
 }
 
@@ -52,7 +62,7 @@ export class HistoricoService {
         *,
         usuarios (nome),
         veiculos (placa, modelo),
-        checkins!jornada_id (selfie_uri, foto_placa_uri),
+        checkins!jornada_id (*),
         checkouts!jornada_id (*)
       `)
       .order('iniciado_em', { ascending: false });
