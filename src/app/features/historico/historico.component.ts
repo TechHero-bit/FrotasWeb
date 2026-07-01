@@ -20,7 +20,7 @@ import { TableComponent, TableColumn } from '../../shared/components/table/table
 
       <!-- Date Filter -->
       <div class="filter-bar">
-        <div class="date-filter-wrapper" [class.active]="selectedDate">
+        <div class="date-filter-wrapper" [class.active]="selectedDate" (click)="openDatePicker(dateInput)">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
@@ -29,6 +29,7 @@ import { TableComponent, TableColumn } from '../../shared/components/table/table
             <line x1="3" x2="21" y1="10" y2="10"/>
           </svg>
           <input
+            #dateInput
             type="date"
             class="date-input"
             [(ngModel)]="selectedDate"
@@ -341,6 +342,16 @@ export class HistoricoComponent implements OnInit {
     if (input.value !== this.selectedDate) {
       this.selectedDate = input.value;
       this.onDateChange();
+    }
+  }
+
+  openDatePicker(input: HTMLInputElement) {
+    if (typeof input.showPicker === 'function') {
+      try {
+        input.showPicker();
+      } catch (e) {
+        // ignore errors if picker is already open
+      }
     }
   }
 
