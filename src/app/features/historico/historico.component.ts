@@ -33,6 +33,7 @@ import { TableComponent, TableColumn } from '../../shared/components/table/table
             class="date-input"
             [(ngModel)]="selectedDate"
             (ngModelChange)="onDateChange()"
+            (change)="onNativeDateChange($event)"
             [max]="maxDate"
             id="historico-date-filter"
           />
@@ -333,6 +334,14 @@ export class HistoricoComponent implements OnInit {
       return;
     }
     this.jornadasFiltradas = this.jornadas.filter(j => j._date_key === this.selectedDate);
+  }
+
+  onNativeDateChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.value !== this.selectedDate) {
+      this.selectedDate = input.value;
+      this.onDateChange();
+    }
   }
 
   clearFilter() {

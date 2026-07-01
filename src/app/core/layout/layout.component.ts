@@ -5,15 +5,18 @@ import { trigger, transition, style, animate, query, group } from '@angular/anim
 
 const pageTransition = trigger('routeAnimation', [
   transition('* <=> *', [
+    query(':enter, :leave', [
+      style({ position: 'absolute', top: 0, left: 0, width: '100%' })
+    ], { optional: true }),
     query(':enter', [
-      style({ opacity: 0, transform: 'translateY(14px)' })
+      style({ opacity: 0, transform: 'translateY(12px)' })
     ], { optional: true }),
     group([
       query(':leave', [
-        animate('180ms ease-out', style({ opacity: 0, transform: 'translateY(-8px)' }))
+        animate('160ms ease-in', style({ opacity: 0, transform: 'translateY(-6px)' }))
       ], { optional: true }),
       query(':enter', [
-        animate('220ms 80ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+        animate('240ms 120ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
       ], { optional: true })
     ])
   ])
