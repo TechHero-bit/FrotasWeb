@@ -196,9 +196,13 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   }
 
   async loadJornadaDetails(id: string) {
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
     try {
       this.loading = true;
-      this.cdr.markForCheck();
+      this.cdr.detectChanges();
       const jornadas = await this.historicoService.getJornadas();
       const jornada = jornadas.find(j => j.id.toString() === id.toString());
       
@@ -212,7 +216,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
       this.error = 'Erro ao carregar detalhes: ' + err.message;
     } finally {
       this.loading = false;
-      this.cdr.markForCheck();
+      this.cdr.detectChanges();
       if (this.jornada) {
         setTimeout(() => this.initMap(), 100);
       }
