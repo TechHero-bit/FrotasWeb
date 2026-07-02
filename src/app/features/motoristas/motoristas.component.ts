@@ -110,6 +110,14 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
           <label for="telefone">Telefone</label>
           <input id="telefone" type="text" formControlName="telefone" placeholder="EX: (11) 99999-9999">
         </div>
+        <div class="form-group">
+          <label for="role">Cargo</label>
+          <select id="role" formControlName="role" class="form-select">
+            <option value="admin">Admin</option>
+            <option value="driver">Driver</option>
+            <option value="manager">Manager</option>
+          </select>
+        </div>
         
         <div class="d-flex justify-content-between mt-4">
           <button type="button" class="btn btn-outline" (click)="closeModal()">Cancelar</button>
@@ -250,7 +258,8 @@ export class MotoristasComponent implements OnInit {
     this.motoristaForm = this.fb.group({
       nome: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      telefone: ['', Validators.required]
+      telefone: ['', Validators.required],
+      role: ['driver', Validators.required]
     });
   }
 
@@ -293,7 +302,7 @@ export class MotoristasComponent implements OnInit {
 
   openCreateModal() {
     this.editingMotorista = null;
-    this.motoristaForm.reset({ nome: '', email: '', telefone: '' });
+    this.motoristaForm.reset({ nome: '', email: '', telefone: '', role: 'driver' });
     this.isModalOpen = true;
     this.error = null;
     this.success = null;
@@ -304,7 +313,8 @@ export class MotoristasComponent implements OnInit {
     this.motoristaForm.reset({
       nome: motorista.nome,
       email: motorista.email,
-      telefone: motorista.telefone
+      telefone: motorista.telefone,
+      role: motorista.role || 'driver'
     });
     this.isModalOpen = true;
     this.error = null;

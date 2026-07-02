@@ -317,7 +317,7 @@ export class HistoricoComponent implements OnInit {
       const data = await this.historicoService.getJornadas();
       this.jornadas = data.map(j => ({
         ...j,
-        data_formatada: this.datePipe.transform(j.iniciado_em, 'shortDate'),
+        data_formatada: this.datePipe.transform(j.iniciado_em, 'dd/MM/yyyy'),
         // Store ISO date string for filtering (YYYY-MM-DD)
         _date_key: j.iniciado_em ? new Date(j.iniciado_em).toISOString().split('T')[0] : ''
       }));
