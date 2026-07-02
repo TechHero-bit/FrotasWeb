@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { Motorista } from './motoristas.service';
 
 export interface Veiculo {
   id: string;
   placa: string;
   modelo: string;
   status: string;
+  responsavel_id?: string;
+  responsavel?: Partial<Motorista>;
+  responsavel_nome?: string;
 }
 
-export type NovoVeiculo = Omit<Veiculo, 'id' | 'status'>;
-export type AtualizarVeiculo = Omit<Veiculo, 'id'>;
+export type NovoVeiculo = Omit<Veiculo, 'id' | 'status' | 'responsavel' | 'responsavel_nome'>;
+export type AtualizarVeiculo = Omit<Veiculo, 'id' | 'responsavel' | 'responsavel_nome'>;
 
 @Injectable({
   providedIn: 'root'
@@ -22,11 +26,15 @@ export class VeiculosService {
   async getVeiculos(): Promise<Veiculo[]> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
-      .select('*')
+      .select('*, responsavel:usuarios!responsavel_id(nome)')
       .order('id', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    return (data || []).map(v => ({
+      ...v,
+      responsavel_nome: v.responsavel?.nome || 'Não atribuído'
+    }));
   }
 
   async addVeiculo(veiculo: NovoVeiculo): Promise<Veiculo> {

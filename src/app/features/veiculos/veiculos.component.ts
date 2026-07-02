@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { VeiculosService, Veiculo } from '../../core/services/veiculos.service';
+import { MotoristasService, Motorista } from '../../core/services/motoristas.service';
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 
@@ -118,6 +119,15 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
         <div class="form-group">
           <label for="modelo">Modelo</label>
           <input id="modelo" type="text" formControlName="modelo" placeholder="EX: Fiat Uno">
+        </div>
+        <div class="form-group">
+          <label for="responsavel">Administrador Responsável</label>
+          <select id="responsavel" formControlName="responsavel_id">
+            <option [ngValue]="null">Nenhum responsável (ou selecionar...)</option>
+            @for (adm of admins; track adm.id) {
+              <option [value]="adm.id">{{ adm.nome }}</option>
+            }
+          </select>
         </div>
         @if (editingVeiculo) {
           <div class="form-group">
@@ -275,6 +285,7 @@ export class VeiculosComponent implements OnInit {
   columns: TableColumn[] = [
     { key: 'placa', label: 'Placa' },
     { key: 'modelo', label: 'Modelo' },
+    { key: 'responsavel_nome', label: 'Responsável' },
     { key: 'status', label: 'Status' }
   ];
 
@@ -284,15 +295,19 @@ export class VeiculosComponent implements OnInit {
   success: string | null = null;
   editingVeiculo: Veiculo | null = null;
 
+  admins: Motorista[] = [];
+
   veiculoForm: FormGroup;
 
   constructor(
     private veiculosService: VeiculosService,
+    private motoristasService: MotoristasService,
     private fb: FormBuilder
   ) {
     this.veiculoForm = this.fb.group({
       placa: ['', Validators.required],
       modelo: ['', Validators.required],
+      responsavel_id: [null],
       status: ['Disponível', Validators.required]
     });
   }
@@ -303,6 +318,16 @@ export class VeiculosComponent implements OnInit {
 
   ngOnInit() {
     this.loadVeiculos();
+    this.loadAdmins();
+  }
+
+  async loadAdmins() {
+    try {
+      const allUsers = await this.motoristasService.getMotoristas();
+      this.admins = allUsers.filter(u => u.role === 'admin');
+    } catch (err: any) {
+      console.error('Erro ao carregar admins', err);
+    }
   }
 
   async loadVeiculos() {
@@ -335,7 +360,7 @@ export class VeiculosComponent implements OnInit {
 
   openCreateModal() {
     this.editingVeiculo = null;
-    this.veiculoForm.reset({ placa: '', modelo: '', status: 'Disponível' });
+    this.veiculoForm.reset({ placa: '', modelo: '', responsavel_id: null, status: 'Disponível' });
     this.isModalOpen = true;
     this.error = null;
     this.success = null;
@@ -346,6 +371,7 @@ export class VeiculosComponent implements OnInit {
     this.veiculoForm.reset({
       placa: veiculo.placa,
       modelo: veiculo.modelo,
+      responsavel_id: veiculo.responsavel_id || null,
       status: veiculo.status
     });
     this.isModalOpen = true;
@@ -365,18 +391,19 @@ export class VeiculosComponent implements OnInit {
     this.error = null;
     this.success = null;
     try {
-      const { placa, modelo, status } = this.veiculoForm.value;
+      const { placa, modelo, status, responsavel_id } = this.veiculoForm.value;
 
       if (this.editingVeiculo) {
         const veiculoAtualizado = await this.veiculosService.updateVeiculo(this.editingVeiculo.id, {
           placa,
           modelo,
-          status
+          status,
+          responsavel_id
         });
         this.veiculos = this.veiculos.map(v => v.id === veiculoAtualizado.id ? veiculoAtualizado : v);
         this.success = 'Veículo alterado com sucesso!';
       } else {
-        const newVeiculo = await this.veiculosService.addVeiculo({ placa, modelo });
+        const newVeiculo = await this.veiculosService.addVeiculo({ placa, modelo, responsavel_id });
         this.veiculos = [newVeiculo, ...this.veiculos];
         this.success = 'Veículo cadastrado com sucesso!';
       }
