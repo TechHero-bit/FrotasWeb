@@ -90,6 +90,17 @@ interface PhotoSlot {
               </div>
             </div>
           </div>
+
+          @if (jornada.checkouts && jornada.checkouts.length > 0 && jornada.checkouts[0].observacoes) {
+            <div class="obs-card mb-4" style="width: 100%;">
+              <div class="card-header">
+                <h3>Observações do Check-out</h3>
+              </div>
+              <div class="card-body">
+                <p class="obs-text" style="min-height: 120px; font-size: 1rem;">{{ jornada.checkouts[0].observacoes }}</p>
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Coluna Direita: Fotos e Observações -->
@@ -138,17 +149,6 @@ interface PhotoSlot {
               </div>
             </div>
           </div>
-
-          @if (jornada.checkouts && jornada.checkouts.length > 0 && jornada.checkouts[0].observacoes) {
-            <div class="obs-card">
-              <div class="card-header">
-                <h3>Observações do Check-out</h3>
-              </div>
-              <div class="card-body">
-                <p class="obs-text">{{ jornada.checkouts[0].observacoes }}</p>
-              </div>
-            </div>
-          }
         </div>
       </div>
     }
@@ -261,7 +261,12 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   }
 
   initMap() {
-    if (!this.mapContainer || this.map) return;
+    if (!this.mapContainer) return;
+
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
 
     this.map = new maplibregl.Map({
       container: this.mapContainer.nativeElement,
