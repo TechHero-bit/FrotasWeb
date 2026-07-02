@@ -121,6 +121,20 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
           <input id="modelo" type="text" formControlName="modelo" placeholder="EX: Fiat Uno">
         </div>
         <div class="form-group">
+          <label for="localizacao">Localização</label>
+          <input id="localizacao" type="text" formControlName="localizacao" placeholder="EX: Garagem Principal">
+        </div>
+        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="km_atual">KM Atual</label>
+            <input id="km_atual" type="number" formControlName="km_atual" placeholder="EX: 15000">
+          </div>
+          <div>
+            <label for="combustivel">Combustível (%)</label>
+            <input id="combustivel" type="number" formControlName="combustivel" placeholder="EX: 100">
+          </div>
+        </div>
+        <div class="form-group">
           <label for="responsavel">Administrador Responsável</label>
           <select id="responsavel" formControlName="responsavel_id">
             <option [ngValue]="null">Nenhum responsável (ou selecionar...)</option>
@@ -307,6 +321,9 @@ export class VeiculosComponent implements OnInit {
     this.veiculoForm = this.fb.group({
       placa: ['', Validators.required],
       modelo: ['', Validators.required],
+      localizacao: ['', Validators.required],
+      km_atual: [0, [Validators.required, Validators.min(0)]],
+      combustivel: [100, [Validators.required, Validators.min(0), Validators.max(100)]],
       responsavel_id: [null],
       status: ['Disponível', Validators.required]
     });
@@ -360,7 +377,7 @@ export class VeiculosComponent implements OnInit {
 
   openCreateModal() {
     this.editingVeiculo = null;
-    this.veiculoForm.reset({ placa: '', modelo: '', responsavel_id: null, status: 'Disponível' });
+    this.veiculoForm.reset({ placa: '', modelo: '', localizacao: '', km_atual: 0, combustivel: 100, responsavel_id: null, status: 'Disponível' });
     this.isModalOpen = true;
     this.error = null;
     this.success = null;
@@ -371,6 +388,9 @@ export class VeiculosComponent implements OnInit {
     this.veiculoForm.reset({
       placa: veiculo.placa,
       modelo: veiculo.modelo,
+      localizacao: veiculo.localizacao,
+      km_atual: veiculo.km_atual,
+      combustivel: veiculo.combustivel,
       responsavel_id: veiculo.responsavel_id || null,
       status: veiculo.status
     });
@@ -391,19 +411,22 @@ export class VeiculosComponent implements OnInit {
     this.error = null;
     this.success = null;
     try {
-      const { placa, modelo, status, responsavel_id } = this.veiculoForm.value;
+      const { placa, modelo, localizacao, km_atual, combustivel, status, responsavel_id } = this.veiculoForm.value;
 
       if (this.editingVeiculo) {
         const veiculoAtualizado = await this.veiculosService.updateVeiculo(this.editingVeiculo.id, {
           placa,
           modelo,
+          localizacao,
+          km_atual,
+          combustivel,
           status,
           responsavel_id
         });
         this.veiculos = this.veiculos.map(v => v.id === veiculoAtualizado.id ? veiculoAtualizado : v);
         this.success = 'Veículo alterado com sucesso!';
       } else {
-        const newVeiculo = await this.veiculosService.addVeiculo({ placa, modelo, responsavel_id });
+        const newVeiculo = await this.veiculosService.addVeiculo({ placa, modelo, localizacao, km_atual, combustivel, responsavel_id });
         this.veiculos = [newVeiculo, ...this.veiculos];
         this.success = 'Veículo cadastrado com sucesso!';
       }
