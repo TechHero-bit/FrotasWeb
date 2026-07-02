@@ -264,7 +264,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     // Initialization of map is handled after data loads
   }
 
-  initMap() {
+  async initMap() {
     if (!this.mapContainer) return;
 
     if (this.map) {
@@ -272,24 +272,35 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
       this.map = null;
     }
 
+    let originLng = this.jornada?.origem_longitude ? Number(this.jornada.origem_longitude) : null;
+    let originLat = this.jornada?.origem_latitude ? Number(this.jornada.origem_latitude) : null;
+    let destLng = this.jornada?.destino_longitude ? Number(this.jornada.destino_longitude) : null;
+    let destLat = this.jornada?.destino_latitude ? Number(this.jornada.destino_latitude) : null;
+
+    // Se não tiver coordenadas, tenta buscar pelo endereço (Geocoding fallback)
+    if ((!originLng || !originLat) && this.jornada?.origem) {
+      const coords = await this.geocode(this.jornada.origem);
+      if (coords) { originLng = coords[0]; originLat = coords[1]; }
+    }
+    if ((!destLng || !destLat) && this.jornada?.destino) {
+      const coords = await this.geocode(this.jornada.destino);
+      if (coords) { destLng = coords[0]; destLat = coords[1]; }
+    }
+
+    // Fallback final se tudo falhar (Centro -> Copacabana)
+    const origin: [number, number] = (originLng && originLat) ? [originLng, originLat] : [-43.18223, -22.90642];
+    const destination: [number, number] = (destLng && destLat) ? [destLng, destLat] : [-43.1755, -22.9688];
+
     this.map = new maplibregl.Map({
       container: this.mapContainer.nativeElement,
       style: 'https://tiles.openfreemap.org/styles/liberty', // OpenFreeMap style
-      center: [-43.18, -22.92], // Default fallback
+      center: origin,
       zoom: 12,
       attributionControl: false
     });
 
     this.map.addControl(new maplibregl.NavigationControl(), 'top-right');
     this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
-
-    const origin: [number, number] = this.jornada?.origem_longitude && this.jornada?.origem_latitude
-      ? [this.jornada.origem_longitude, this.jornada.origem_latitude]
-      : [-43.18223, -22.90642]; // Fallback if no data
-
-    const destination: [number, number] = this.jornada?.destino_longitude && this.jornada?.destino_latitude
-      ? [this.jornada.destino_longitude, this.jornada.destino_latitude]
-      : [-43.1755, -22.9688]; // Fallback if no data
 
     new maplibregl.Marker({ color: '#6C757D' })
       .setLngLat(origin)
@@ -332,6 +343,20 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
         console.warn('Erro ao buscar a polyline da rota OSRM', e);
       }
     });
+  }
+
+  async geocode(address: string): Promise<[number, number] | null> {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return [Number(data[0].lon), Number(data[0].lat)];
+      }
+    } catch (e) {
+      console.warn('Erro ao buscar coordenadas para o endereço:', address, e);
+    }
+    return null;
   }
 
   ngOnDestroy() {
