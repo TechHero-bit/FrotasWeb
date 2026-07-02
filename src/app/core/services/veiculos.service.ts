@@ -9,7 +9,7 @@ export interface Veiculo {
   status: string;
   localizacao: string;
   km_atual: number;
-  combustivel: number;
+  nivel_combustivel: number;
   responsavel_id?: string;
   responsavel?: Partial<Motorista>;
   responsavel_nome?: string;

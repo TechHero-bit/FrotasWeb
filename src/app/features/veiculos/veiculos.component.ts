@@ -130,8 +130,8 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
             <input id="km_atual" type="number" formControlName="km_atual" placeholder="EX: 15000">
           </div>
           <div>
-            <label for="combustivel">Combustível (%)</label>
-            <input id="combustivel" type="number" formControlName="combustivel" placeholder="EX: 100">
+            <label for="nivel_combustivel">Combustível (%)</label>
+            <input id="nivel_combustivel" type="number" formControlName="nivel_combustivel" placeholder="EX: 100">
           </div>
         </div>
         <div class="form-group">
@@ -323,7 +323,7 @@ export class VeiculosComponent implements OnInit {
       modelo: ['', Validators.required],
       localizacao: ['', Validators.required],
       km_atual: [0, [Validators.required, Validators.min(0)]],
-      combustivel: [100, [Validators.required, Validators.min(0), Validators.max(100)]],
+      nivel_combustivel: [100, [Validators.required, Validators.min(0), Validators.max(100)]],
       responsavel_id: [null],
       status: ['Disponível', Validators.required]
     });
@@ -377,7 +377,7 @@ export class VeiculosComponent implements OnInit {
 
   openCreateModal() {
     this.editingVeiculo = null;
-    this.veiculoForm.reset({ placa: '', modelo: '', localizacao: '', km_atual: 0, combustivel: 100, responsavel_id: null, status: 'Disponível' });
+    this.veiculoForm.reset({ placa: '', modelo: '', localizacao: '', km_atual: 0, nivel_combustivel: 100, responsavel_id: null, status: 'Disponível' });
     this.isModalOpen = true;
     this.error = null;
     this.success = null;
@@ -390,7 +390,7 @@ export class VeiculosComponent implements OnInit {
       modelo: veiculo.modelo,
       localizacao: veiculo.localizacao,
       km_atual: veiculo.km_atual,
-      combustivel: veiculo.combustivel,
+      nivel_combustivel: veiculo.nivel_combustivel,
       responsavel_id: veiculo.responsavel_id || null,
       status: veiculo.status
     });
@@ -411,7 +411,7 @@ export class VeiculosComponent implements OnInit {
     this.error = null;
     this.success = null;
     try {
-      const { placa, modelo, localizacao, km_atual, combustivel, status, responsavel_id } = this.veiculoForm.value;
+      const { placa, modelo, localizacao, km_atual, nivel_combustivel, status, responsavel_id } = this.veiculoForm.value;
 
       if (this.editingVeiculo) {
         const veiculoAtualizado = await this.veiculosService.updateVeiculo(this.editingVeiculo.id, {
@@ -419,14 +419,14 @@ export class VeiculosComponent implements OnInit {
           modelo,
           localizacao,
           km_atual,
-          combustivel,
+          nivel_combustivel,
           status,
           responsavel_id
         });
         this.veiculos = this.veiculos.map(v => v.id === veiculoAtualizado.id ? veiculoAtualizado : v);
         this.success = 'Veículo alterado com sucesso!';
       } else {
-        const newVeiculo = await this.veiculosService.addVeiculo({ placa, modelo, localizacao, km_atual, combustivel, responsavel_id });
+        const newVeiculo = await this.veiculosService.addVeiculo({ placa, modelo, localizacao, km_atual, nivel_combustivel, responsavel_id });
         this.veiculos = [newVeiculo, ...this.veiculos];
         this.success = 'Veículo cadastrado com sucesso!';
       }
