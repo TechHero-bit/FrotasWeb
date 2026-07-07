@@ -34,9 +34,15 @@ export class TarefasService {
       .select('*, usuarios(nome), veiculos(placa)')
       .order('data_limite', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[TAREFAS SERVICE ERROR]', error);
+      throw error;
+    }
 
-    return (data || []).map(t => this.mapTarefa(t));
+    console.log('[TAREFAS SERVICE] Raw data from Supabase:', data);
+    const result = (data || []).map(t => this.mapTarefa(t));
+    console.log('[TAREFAS SERVICE] Mapped tarefas:', result);
+    return result;
   }
 
   async addTarefa(tarefa: NovaTarefa): Promise<Tarefa> {
@@ -80,6 +86,7 @@ export class TarefasService {
   private mapTarefa(tarefa: Tarefa): Tarefa {
     return {
       ...tarefa,
+      status: tarefa.status || 'Pendente', // Valor padrão se vir null/undefined
       motorista_nome: tarefa.usuarios?.nome || 'Não atribuído',
       veiculo_placa: (tarefa as any)?.veiculos?.placa || 'Sem veículo'
     };
