@@ -34,15 +34,9 @@ export class TarefasService {
       .select('*, usuarios(nome), veiculos(placa)')
       .order('data_limite', { ascending: true });
 
-    if (error) {
-      console.error('[TAREFAS SERVICE ERROR]', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    console.log('[TAREFAS SERVICE] Raw data from Supabase:', data);
-    const result = (data || []).map(t => this.mapTarefa(t));
-    console.log('[TAREFAS SERVICE] Mapped tarefas:', result);
-    return result;
+    return (data || []).map(t => this.mapTarefa(t));
   }
 
   async addTarefa(tarefa: NovaTarefa): Promise<Tarefa> {

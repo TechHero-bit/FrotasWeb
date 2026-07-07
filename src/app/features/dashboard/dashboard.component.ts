@@ -188,12 +188,6 @@ interface DashboardMetrics {
                 <span class="status-count">{{ metrics.tarefasFinalizadas }}</span>
               </div>
             </div>
-
-            <!-- DEBUG: Mostrar dados brutos das tarefas -->
-            <div style="margin-top: 16px; padding: 12px; background: #f3f4f6; border-radius: 6px; font-size: 11px; color: #666; border: 1px solid #e5e7eb;">
-              <strong>DEBUG - Tarefas Brutas ({{ metrics.tarefas.length }}):</strong>
-              <pre style="margin: 8px 0 0; white-space: pre-wrap; word-break: break-word; font-size: 10px;">{{ metrics.tarefas | json }}</pre>
-            </div>
           </div>
         </div>
 
@@ -423,21 +417,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     historicos: Jornada[]
   ): DashboardMetrics {
     const totalTarefas = tarefas.length;
-    
-    // Debug: verificar dados das tarefas
-    console.log('[DASHBOARD DEBUG] Tarefas recebidas:', tarefas);
-    console.log('[DASHBOARD DEBUG] Total de tarefas:', totalTarefas);
-    if (tarefas.length > 0) {
-      console.log('[DASHBOARD DEBUG] Primeira tarefa:', tarefas[0]);
-      console.log('[DASHBOARD DEBUG] Status da primeira tarefa:', tarefas[0].status);
-      console.log('[DASHBOARD DEBUG] Status normalizado:', this.normalizeStatus(tarefas[0].status));
-      
-      // Lista todos os status únicos
-      const statusUnicos = [...new Set(tarefas.map(t => t.status))];
-      console.log('[DASHBOARD DEBUG] Status únicos no banco:', statusUnicos);
-      const statusNormalizados = [...new Set(tarefas.map(t => this.normalizeStatus(t.status)))];
-      console.log('[DASHBOARD DEBUG] Status normalizados únicos:', statusNormalizados);
-    }
 
     const tarefasNaoIniciadas = tarefas.filter(o => {
       const normalized = this.normalizeStatus(o.status);
@@ -458,14 +437,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const normalized = this.normalizeStatus(o.status);
       return normalized === 'concluida' || normalized === 'concluído' || normalized === 'finalizada' || normalized === 'finalizado' || normalized === 'concluido';
     }).length;
-
-    console.log('[DASHBOARD DEBUG] Contagem por status:', { 
-      naoIniciadas: tarefasNaoIniciadas,
-      emAndamento: tarefasEmAndamento,
-      interrompidas: tarefasInterrompidas,
-      finalizadas: tarefasFinalizadas,
-      totalContado: tarefasNaoIniciadas + tarefasEmAndamento + tarefasInterrompidas + tarefasFinalizadas
-    });
 
     const pctNaoIniciadas = totalTarefas > 0 ? (tarefasNaoIniciadas / totalTarefas) * 100 : 0;
     const pctEmAndamento = totalTarefas > 0 ? (tarefasEmAndamento / totalTarefas) * 100 : 0;
