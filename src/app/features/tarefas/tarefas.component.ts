@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TarefasService, Tarefa } from '../../core/services/tarefas.service';
 import { MotoristasService, Motorista } from '../../core/services/motoristas.service';
+import { VeiculosService, Veiculo } from '../../core/services/veiculos.service';
 import { TableComponent, TableColumn } from '../../shared/components/table/table.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 
@@ -57,6 +58,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
             <option value="">Todos os status</option>
             <option value="Pendente">Pendente</option>
             <option value="Em andamento">Em andamento</option>
+            <option value="Interrompido">Interrompido</option>
             <option value="Concluída">Concluída</option>
           </select>
         </div>
@@ -117,21 +119,37 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
           <input id="titulo" type="text" formControlName="titulo" placeholder="EX: Entrega em São Paulo">
         </div>
         <div class="form-group">
-          <label for="usuario_id">Motorista Atribuído</label>
-          <select id="usuario_id" formControlName="usuario_id">
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" formControlName="descricao" placeholder="Descreva os detalhes da tarefa..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="localizacao">Localização</label>
+          <input id="localizacao" type="text" formControlName="localizacao" placeholder="EX: Rua das Flores, 123">
+        </div>
+        <div class="form-group">
+          <label for="veiculo_id">Veículo</label>
+          <select id="veiculo_id" formControlName="veiculo_id">
+            <option value="" disabled>Selecione um veículo</option>
+            <option *ngFor="let v of veiculos" [value]="v.id">{{ v.placa }} - {{ v.modelo }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="atribuido_a">Motorista Atribuído</label>
+          <select id="atribuido_a" formControlName="atribuido_a">
             <option value="" disabled>Selecione um motorista</option>
             <option *ngFor="let m of motoristas" [value]="m.id">{{ m.nome }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label for="data_limite">Data Limite</label>
-          <input id="data_limite" type="date" formControlName="data_limite">
+          <label for="data_limite">Data e Hora Limite</label>
+          <input id="data_limite" type="datetime-local" formControlName="data_limite">
         </div>
         <div class="form-group">
           <label for="status">Status</label>
           <select id="status" formControlName="status">
             <option value="Pendente">Pendente</option>
             <option value="Em andamento">Em andamento</option>
+            <option value="Interrompido">Interrompido</option>
             <option value="Concluída">Concluída</option>
           </select>
         </div>
@@ -271,18 +289,90 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
       border-radius: 6px;
       margin-bottom: 1rem;
     }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--color-border, #e0e0e0);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(185,28,28,0.08);
+    }
+    .d-flex {
+      display: flex;
+    }
+    .justify-content-between {
+      justify-content: space-between;
+    }
+    .mt-4 {
+      margin-top: 1.5rem;
+    }
+    .mb-4 {
+      margin-bottom: 1.5rem;
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--color-primary);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary);
+    }
+    .btn-outline:hover {
+      background: rgba(185,28,28,0.08);
+    }
   `]
 })
 export class TarefasComponent implements OnInit {
   tarefas: Tarefa[] = [];
   tarefasFiltered: Tarefa[] = [];
   motoristas: Motorista[] = [];
+  veiculos: Veiculo[] = [];
   searchQuery = '';
   statusFilter = '';
   columns: TableColumn[] = [
     { key: 'titulo', label: 'Título' },
     { key: 'status', label: 'Status' },
     { key: 'motorista_nome', label: 'Motorista' },
+    { key: 'veiculo_placa', label: 'Veículo' },
     { key: 'data_limite', label: 'Data Limite', format: (value: any) => this.formatDateTime(value) }
   ];
   
@@ -297,13 +387,17 @@ export class TarefasComponent implements OnInit {
   constructor(
     private tarefasService: TarefasService,
     private motoristasService: MotoristasService,
+    private veiculosService: VeiculosService,
     private fb: FormBuilder
   ) {
     this.tarefaForm = this.fb.group({
       titulo: ['', Validators.required],
-      status: ['Pendente', Validators.required],
+      descricao: ['', Validators.required],
+      localizacao: ['', Validators.required],
+      veiculo_id: ['', Validators.required],
+      atribuido_a: ['', Validators.required],
       data_limite: ['', Validators.required],
-      usuario_id: ['', Validators.required]
+      status: ['Pendente', Validators.required]
     });
   }
 
@@ -314,6 +408,7 @@ export class TarefasComponent implements OnInit {
   ngOnInit() {
     this.loadTarefas();
     this.loadMotoristas();
+    this.loadVeiculos();
   }
 
   async loadTarefas() {
@@ -331,6 +426,14 @@ export class TarefasComponent implements OnInit {
       this.motoristas = await this.motoristasService.getMotoristas();
     } catch (err: any) {
       console.error('Erro ao carregar motoristas', err);
+    }
+  }
+
+  async loadVeiculos() {
+    try {
+      this.veiculos = await this.veiculosService.getVeiculos();
+    } catch (err: any) {
+      console.error('Erro ao carregar veículos', err);
     }
   }
 
@@ -354,7 +457,15 @@ export class TarefasComponent implements OnInit {
 
   openCreateModal() {
     this.editingTarefa = null;
-    this.tarefaForm.reset({ titulo: '', status: 'Pendente', data_limite: '', usuario_id: '' });
+    this.tarefaForm.reset({ 
+      titulo: '', 
+      descricao: '',
+      localizacao: '',
+      veiculo_id: '',
+      atribuido_a: '',
+      data_limite: '',
+      status: 'Pendente'
+    });
     this.isModalOpen = true;
     this.error = null;
     this.success = null;
@@ -364,9 +475,12 @@ export class TarefasComponent implements OnInit {
     this.editingTarefa = tarefa;
     this.tarefaForm.reset({
       titulo: tarefa.titulo,
-      status: tarefa.status,
+      descricao: tarefa.descricao,
+      localizacao: tarefa.localizacao,
+      veiculo_id: tarefa.veiculo_id || '',
+      atribuido_a: tarefa.atribuido_a,
       data_limite: tarefa.data_limite,
-      usuario_id: tarefa.usuario_id
+      status: tarefa.status
     });
     this.isModalOpen = true;
     this.error = null;

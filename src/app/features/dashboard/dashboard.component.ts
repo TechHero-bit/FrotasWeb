@@ -16,9 +16,11 @@ interface DashboardMetrics {
   tarefas: Tarefa[];
   tarefasNaoIniciadas: number;
   tarefasEmAndamento: number;
+  tarefasInterrompidas: number;
   tarefasFinalizadas: number;
   pctNaoIniciadas: number;
   pctEmAndamento: number;
+  pctInterrompidas: number;
   pctFinalizadas: number;
   historicosRecentes: Jornada[];
 }
@@ -154,6 +156,21 @@ interface DashboardMetrics {
                        [style.width.%]="metrics.pctEmAndamento"></div>
                 </div>
                 <span class="status-count">{{ metrics.tarefasEmAndamento }}</span>
+              </div>
+            </div>
+
+            <!-- Interrompidas -->
+            <div class="status-item">
+              <div class="status-label">
+                <span class="status-dot dot-interrupted"></span>
+                Interrompidas
+              </div>
+              <div class="status-bar-wrapper">
+                <div class="status-bar">
+                  <div class="status-bar-fill fill-interrupted"
+                       [style.width.%]="metrics.pctInterrompidas"></div>
+                </div>
+                <span class="status-count">{{ metrics.tarefasInterrompidas }}</span>
               </div>
             </div>
 
@@ -409,12 +426,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.normalizeStatus(o.status) === 'em andamento' || this.normalizeStatus(o.status) === 'andamento'
     ).length;
 
+    const tarefasInterrompidas = tarefas.filter(o =>
+      this.normalizeStatus(o.status) === 'interrompido' || this.normalizeStatus(o.status) === 'interrompida'
+    ).length;
+
     const tarefasFinalizadas = tarefas.filter(o =>
       this.normalizeStatus(o.status) === 'concluida' || this.normalizeStatus(o.status) === 'finalizada'
     ).length;
 
     const pctNaoIniciadas = totalTarefas > 0 ? (tarefasNaoIniciadas / totalTarefas) * 100 : 0;
     const pctEmAndamento = totalTarefas > 0 ? (tarefasEmAndamento / totalTarefas) * 100 : 0;
+    const pctInterrompidas = totalTarefas > 0 ? (tarefasInterrompidas / totalTarefas) * 100 : 0;
     const pctFinalizadas = totalTarefas > 0 ? (tarefasFinalizadas / totalTarefas) * 100 : 0;
 
     // Sort by date descending and take 5 most recent
@@ -433,9 +455,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       tarefas,
       tarefasNaoIniciadas,
       tarefasEmAndamento,
+      tarefasInterrompidas,
       tarefasFinalizadas,
       pctNaoIniciadas,
       pctEmAndamento,
+      pctInterrompidas,
       pctFinalizadas,
       historicosRecentes
     };

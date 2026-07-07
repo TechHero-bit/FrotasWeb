@@ -5,15 +5,20 @@ import { Motorista } from './motoristas.service';
 export interface Tarefa {
   id: string;
   titulo: string;
+  descricao: string;
   status: string;
+  localizacao: string;
+  veiculo_id?: number;
+  atribuido_a: string;
+  agendado_em: string;
   data_limite: string;
-  usuario_id: string;
   usuarios?: Partial<Motorista>; // for join
   motorista_nome?: string; // UI friendly
+  veiculo_placa?: string; // UI friendly
 }
 
-export type NovaTarefa = Omit<Tarefa, 'id' | 'usuarios' | 'motorista_nome'>;
-export type AtualizarTarefa = Omit<Tarefa, 'id' | 'usuarios' | 'motorista_nome'>;
+export type NovaTarefa = Omit<Tarefa, 'id' | 'usuarios' | 'motorista_nome' | 'veiculo_placa' | 'agendado_em'>;
+export type AtualizarTarefa = Omit<Tarefa, 'id' | 'usuarios' | 'motorista_nome' | 'veiculo_placa' | 'agendado_em'>;
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +31,7 @@ export class TarefasService {
   async getTarefas(): Promise<Tarefa[]> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
-      .select('*, usuarios(nome)')
+      .select('*, usuarios(nome), veiculos(placa)')
       .order('data_limite', { ascending: true });
 
     if (error) throw error;
@@ -37,8 +42,12 @@ export class TarefasService {
   async addTarefa(tarefa: NovaTarefa): Promise<Tarefa> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
-      .insert(tarefa)
-      .select('*, usuarios(nome)')
+      .insert({
+        ...tarefa,
+        atribuido_a: tarefa.atribuido_a,
+        agendado_em: new Date().toISOString()
+      })
+      .select('*, usuarios(nome), veiculos(placa)')
       .single();
 
     if (error) throw error;
@@ -51,7 +60,7 @@ export class TarefasService {
       .from(this.TABLE)
       .update(tarefa)
       .eq('id', id)
-      .select('*, usuarios(nome)')
+      .select('*, usuarios(nome), veiculos(placa)')
       .single();
 
     if (error) throw error;
@@ -71,7 +80,8 @@ export class TarefasService {
   private mapTarefa(tarefa: Tarefa): Tarefa {
     return {
       ...tarefa,
-      motorista_nome: tarefa.usuarios?.nome || 'Não atribuído'
+      motorista_nome: tarefa.usuarios?.nome || 'Não atribuído',
+      veiculo_placa: (tarefa as any)?.veiculos?.placa || 'Sem veículo'
     };
   }
 }
