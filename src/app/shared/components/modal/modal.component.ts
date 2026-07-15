@@ -7,8 +7,8 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     @if (isOpen) {
-      <div class="modal-backdrop" (click)="close()">
-        <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-backdrop" (mousedown)="onBackdropMouseDown($event)">
+        <div class="modal-container">
           <div class="modal-header">
             <h3>{{ title }}</h3>
             <button class="close-btn" (click)="close()">&times;</button>
@@ -30,5 +30,11 @@ export class ModalComponent {
   close() {
     this.isOpen = false;
     this.isOpenChange.emit(this.isOpen);
+  }
+
+  onBackdropMouseDown(event: MouseEvent) {
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+      this.close();
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TarefasService, Tarefa } from '../../core/services/tarefas.service';
 import { MotoristasService, Motorista } from '../../core/services/motoristas.service';
 import { VeiculosService, Veiculo } from '../../core/services/veiculos.service';
@@ -92,6 +93,12 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
     <app-table [data]="tarefasFiltered" [columns]="columns">
       <ng-template #actions let-row>
         <div class="actions-group">
+          <button class="btn-icon btn-icon-info" type="button" title="Detalhes" aria-label="Detalhes" (click)="verDetalhes(row)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
           <button class="btn-icon btn-icon-edit" type="button" title="Editar tarefa" aria-label="Editar tarefa" (click)="openEditModal(row)">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 20h4l10-10-4-4L4 16v4Z"></path>
@@ -388,7 +395,8 @@ export class TarefasComponent implements OnInit {
     private tarefasService: TarefasService,
     private motoristasService: MotoristasService,
     private veiculosService: VeiculosService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router
   ) {
     this.tarefaForm = this.fb.group({
       titulo: ['', Validators.required],
@@ -552,5 +560,9 @@ export class TarefasComponent implements OnInit {
     const minutes = pad(date.getMinutes());
 
     return `${day}/${month}/${year}-${hours}:${minutes}`;
+  }
+
+  verDetalhes(tarefa: Tarefa) {
+    this.router.navigate(['/tarefas', tarefa.id]);
   }
 }

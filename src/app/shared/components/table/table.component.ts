@@ -1,4 +1,4 @@
-import { Component, Input, ContentChild, TemplateRef } from '@angular/core';
+import { Component, Input, ContentChild, TemplateRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface TableColumn {
@@ -25,7 +25,7 @@ export interface TableColumn {
           </tr>
         </thead>
         <tbody>
-          @for (row of data; track row.id || $index) {
+          @for (row of paginatedData; track row.id || $index) {
             <tr>
               @for (col of columns; track col.key) {
                 <td>{{ col.format ? col.format(row[col.key]) : row[col.key] }}</td>
@@ -46,12 +46,49 @@ export interface TableColumn {
           }
         </tbody>
       </table>
+      @if (totalPages > 1) {
+        <div class="pagination-controls">
+          <button class="btn-page" [disabled]="currentPage === 1" (click)="prevPage()">Anterior</button>
+          <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+          <button class="btn-page" [disabled]="currentPage === totalPages" (click)="nextPage()">Próximo</button>
+        </div>
+      }
     </div>
   `,
   styleUrls: ['./table.component.scss']
 })
-export class TableComponent {
+export class TableComponent implements OnChanges {
   @Input() data: any[] = [];
   @Input() columns: TableColumn[] = [];
+  @Input() pageSize: number = 10;
   @ContentChild('actions') actionsTemplate?: TemplateRef<any>;
+
+  currentPage = 1;
+
+  get totalPages(): number {
+    return Math.ceil(this.data.length / this.pageSize) || 1;
+  }
+
+  get paginatedData(): any[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.data.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data']) {
+      this.currentPage = 1;
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
 }

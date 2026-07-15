@@ -40,6 +40,11 @@ export const routes: Routes = [
           import('./features/tarefas/tarefas.component').then((m) => m.TarefasComponent)
       },
       {
+        path: 'tarefas/:id',
+        loadComponent: () =>
+          import('./features/tarefas/tarefas-detalhes.component').then((m) => m.TarefasDetalhesComponent)
+      },
+      {
         path: 'historico',
         loadComponent: () =>
           import('./features/historico/historico.component').then((m) => m.HistoricoComponent)
