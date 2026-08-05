@@ -1,0 +1,199 @@
+.motorista-app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9ff;
+  font-family: 'Hanken Grotesk', Inter, sans-serif;
+  color: #151c27;
+}
+
+.top-app-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #dce2f3;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.header-content {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  gap: var(--space-2);
+
+  .logo-icon {
+    font-size: 28px;
+    color: #b91c1c;
+    font-variation-settings: 'FILL' 1;
+  }
+
+  .app-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #b91c1c;
+    letter-spacing: -0.01em;
+  }
+
+  .portal-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background-color: #ffdad6;
+    color: #93000b;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  color: #555f6f;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    color: #b91c1c;
+    background-color: #e7eefe;
+  }
+
+  &.active {
+    color: #ffffff;
+    background-color: #b91c1c;
+  }
+
+  span {
+    font-size: 20px;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+
+  .icon-btn {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: var(--radius-full);
+    background-color: #e7eefe;
+    color: #555f6f;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+
+    &:hover {
+      background-color: #ffdad6;
+      color: #b91c1c;
+    }
+
+    .badge-dot {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #b91c1c;
+    }
+  }
+}
+
+.main-content {
+  flex: 1;
+  margin-top: 64px;
+  padding-bottom: 80px;
+
+  @media (min-width: 769px) {
+    padding-bottom: var(--space-8);
+  }
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: #ffffff;
+  border-top: 1px solid #dce2f3;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+
+  @media (min-width: 769px) {
+    display: none;
+  }
+}
+
+.bottom-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  color: #555f6f;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  .icon {
+    font-size: 24px;
+    transition: transform var(--transition-fast);
+  }
+
+  .label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  &.active {
+    color: #b91c1c;
+
+    .icon {
+      font-variation-settings: 'FILL' 1;
+      transform: translateY(-2px);
+    }
+
+    .label {
+      font-weight: 700;
+    }
+  }
+}

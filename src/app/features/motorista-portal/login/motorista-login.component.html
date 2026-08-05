@@ -1,0 +1,85 @@
+<main class="driver-login-page">
+  <div class="login-container">
+    <!-- Header / Brand -->
+    <div class="brand-header">
+      <div class="brand-logo">
+        <span class="material-symbols-outlined logo-icon">local_shipping</span>
+      </div>
+      <h1 class="brand-title">LogiTrack</h1>
+      <p class="brand-subtitle">Acesso Driver</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="login-form" novalidate>
+        <!-- Email Field -->
+        <div class="form-field">
+          <label for="driver-email">E-MAIL</label>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">mail</span>
+            <input
+              id="driver-email"
+              type="email"
+              formControlName="email"
+              placeholder="motorista@frotasweb.com"
+              [class.invalid]="fieldHasError('email')"
+            />
+          </div>
+          <small *ngIf="fieldHasError('email')" class="error-text">Informe um e-mail válido.</small>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-field">
+          <div class="label-row">
+            <label for="driver-password">SENHA</label>
+            <a href="javascript:void(0)" class="forgot-link">Esqueceu?</a>
+          </div>
+          <div class="input-wrapper">
+            <span class="material-symbols-outlined input-icon">lock</span>
+            <input
+              id="driver-password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••"
+              [class.invalid]="fieldHasError('password')"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Exibir senha'"
+            >
+              <span class="material-symbols-outlined">
+                {{ showPassword ? 'visibility' : 'visibility_off' }}
+              </span>
+            </button>
+          </div>
+          <small *ngIf="fieldHasError('password')" class="error-text">A senha deve ter pelo menos 6 caracteres.</small>
+        </div>
+
+        <!-- Error Alert -->
+        <div *ngIf="errorMessage" class="error-alert" role="alert">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="submit-btn" [disabled]="loading">
+          {{ loading ? 'ENTRANDO...' : 'LOGAR' }}
+        </button>
+
+        <!-- Admin Switch Link -->
+        <div class="admin-switch-container">
+          <a [routerLink]="['/login']" class="admin-switch-link">
+            <span class="material-symbols-outlined">admin_panel_settings</span>
+            Acesso Administrativo (Gestores)
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer Support -->
+    <div class="support-footer">
+      <p>Precisa de ajuda? <a href="javascript:void(0)" class="support-link">Fale com o suporte</a></p>
+    </div>
+  </div>
+</main>

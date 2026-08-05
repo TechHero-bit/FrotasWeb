@@ -1,0 +1,64 @@
+<div class="motorista-app-container">
+  <!-- Top App Bar -->
+  <header class="top-app-bar">
+    <div class="header-content">
+      <div class="brand flex-center">
+        <span class="material-symbols-outlined logo-icon">local_shipping</span>
+        <h1 class="app-title">LogiTrack</h1>
+        <span class="portal-badge">Motorista</span>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <nav class="desktop-nav">
+        <a [routerLink]="['/motorista/home']" routerLinkActive="active" class="nav-link">
+          <span class="material-symbols-outlined">home</span>
+          Início
+        </a>
+        <a [routerLink]="['/motorista/frota']" routerLinkActive="active" class="nav-link">
+          <span class="material-symbols-outlined">directions_car</span>
+          Frota
+        </a>
+        <a [routerLink]="['/motorista/tarefas']" routerLinkActive="active" class="nav-link">
+          <span class="material-symbols-outlined">assignment</span>
+          Tarefas
+        </a>
+        <a [routerLink]="['/motorista/perfil']" routerLinkActive="active" class="nav-link">
+          <span class="material-symbols-outlined">person</span>
+          Perfil
+        </a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" aria-label="Notificações">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="badge-dot"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a [routerLink]="['/motorista/home']" routerLinkActive="active" class="bottom-tab">
+      <span class="material-symbols-outlined icon">home</span>
+      <span class="label">Início</span>
+    </a>
+    <a [routerLink]="['/motorista/frota']" routerLinkActive="active" class="bottom-tab">
+      <span class="material-symbols-outlined icon">directions_car</span>
+      <span class="label">Frota</span>
+    </a>
+    <a [routerLink]="['/motorista/tarefas']" routerLinkActive="active" class="bottom-tab">
+      <span class="material-symbols-outlined icon">assignment</span>
+      <span class="label">Tarefas</span>
+    </a>
+    <a [routerLink]="['/motorista/perfil']" routerLinkActive="active" class="bottom-tab">
+      <span class="material-symbols-outlined icon">person</span>
+      <span class="label">Perfil</span>
+    </a>
+  </nav>
+</div>

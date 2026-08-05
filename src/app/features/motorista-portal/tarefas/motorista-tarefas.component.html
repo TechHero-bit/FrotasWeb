@@ -1,0 +1,93 @@
+<div class="tarefas-page">
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h2 class="title">Tarefas &amp; Ordens de Serviço</h2>
+        <p class="subtitle">Acompanhe e execute suas missões diárias de transporte</p>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <span class="material-symbols-outlined spin">sync</span>
+      Carregando tarefas...
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <!-- Status Tabs -->
+      <div class="tab-group">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'pendentes'"
+          (click)="activeTab = 'pendentes'"
+        >
+          Pendentes ({{ countPendentes }})
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'concluidas'"
+          (click)="activeTab = 'concluidas'"
+        >
+          Concluídas ({{ countConcluidas }})
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="currentTasks.length === 0" class="empty-state">
+        <span class="material-symbols-outlined empty-icon">assignment</span>
+        <p>Nenhuma tarefa encontrada nesta categoria.</p>
+      </div>
+
+      <!-- Task List -->
+      <div class="tasks-list">
+        <div *ngFor="let task of currentTasks" class="task-card" [class.done]="isConcluida(task)">
+          <div class="task-header">
+            <div class="type-icon-wrap" [ngClass]="getPrioridadeClass(task.status)">
+              <span class="material-symbols-outlined">{{ getTaskIcon(task.status) }}</span>
+            </div>
+            <div class="task-info">
+              <h3 class="task-title">{{ task.titulo }}</h3>
+              <span class="task-code">#{{ task.id }} • {{ formatDate(task.data_limite) }}</span>
+            </div>
+            <span class="priority-badge" [ngClass]="getPrioridadeClass(task.status)">
+              {{ task.status }}
+            </span>
+          </div>
+
+          <p class="task-desc">{{ task.descricao }}</p>
+
+          <div class="task-meta">
+            <div class="meta-item">
+              <span class="material-symbols-outlined icon">location_on</span>
+              <span>{{ task.localizacao || 'Sem localização' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="material-symbols-outlined icon">directions_car</span>
+              <span>Veículo: <strong>{{ task.veiculo_placa || 'Sem veículo' }}</strong></span>
+            </div>
+            <div class="meta-item" *ngIf="task.motorista_nome">
+              <span class="material-symbols-outlined icon">person</span>
+              <span>Atribuído a: <strong>{{ task.motorista_nome }}</strong></span>
+            </div>
+          </div>
+
+          <div class="task-footer">
+            <button *ngIf="!isConcluida(task)" class="action-btn outline" (click)="registrarOcorrencia(task)">
+              Registrar Ocorrência
+            </button>
+            <button *ngIf="!isConcluida(task)" class="action-btn primary" (click)="concluirTarefa(task)">
+              <span class="material-symbols-outlined">check</span>
+              Concluir Tarefa
+            </button>
+
+            <div *ngIf="isConcluida(task)" class="done-label">
+              <span class="material-symbols-outlined">check_circle</span>
+              Finalizada com sucesso
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

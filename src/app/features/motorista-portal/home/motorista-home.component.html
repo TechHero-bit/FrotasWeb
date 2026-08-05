@@ -1,0 +1,123 @@
+<div class="motorista-home-page">
+  <div class="container">
+    <!-- Hero Banner Card -->
+    <section class="hero-card">
+      <div class="hero-content">
+        <h2 class="hero-title">Gestão Inteligente de Frota</h2>
+        <p class="hero-description">
+          Monitore, otimize e gerencie seus veículos em tempo real com máxima eficiência e segurança.
+        </p>
+        <button class="hero-action-btn" (click)="iniciarJornada()">
+          <span class="material-symbols-outlined">play_arrow</span>
+          {{ jornadaAtiva ? 'Jornada em Andamento' : 'Iniciar Jornada' }}
+        </button>
+      </div>
+      <div class="hero-badge">
+        <span class="material-symbols-outlined icon">verified_user</span>
+        <span>{{ driverName || 'Motorista' }}</span>
+      </div>
+    </section>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <span class="material-symbols-outlined spin">sync</span>
+      Carregando dados da frota...
+    </div>
+
+    <!-- Overview Bento Grid -->
+    <section *ngIf="!loading" class="metrics-grid">
+      <!-- Disponíveis Card -->
+      <div class="metric-card available">
+        <div class="metric-header">
+          <span class="label">Disponíveis</span>
+          <div class="icon-circle success">
+            <span class="material-symbols-outlined">check_circle</span>
+          </div>
+        </div>
+        <div class="metric-body">
+          <span class="value">{{ countDisponiveis }}</span>
+          <span class="subtext">Veículos prontos para uso</span>
+        </div>
+      </div>
+
+      <!-- Em Rota Card -->
+      <div class="metric-card in-route">
+        <div class="metric-header">
+          <span class="label">Em Rota</span>
+          <div class="icon-circle primary">
+            <span class="material-symbols-outlined">route</span>
+          </div>
+        </div>
+        <div class="metric-body">
+          <span class="value highlight">{{ countEmRota }}</span>
+          <span class="subtext">Entregas em andamento</span>
+        </div>
+      </div>
+
+      <!-- Manutenção Card -->
+      <div class="metric-card maintenance">
+        <div class="metric-header">
+          <span class="label">Manutenção</span>
+          <div class="icon-circle warning">
+            <span class="material-symbols-outlined">build</span>
+          </div>
+        </div>
+        <div class="metric-body">
+          <span class="value">{{ countManutencao }}</span>
+          <span class="subtext">Aguardando revisão</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Current Vehicle & Trip Card -->
+    <section *ngIf="!loading && meuVeiculo" class="current-vehicle-card">
+      <div class="card-header">
+        <div class="title-wrap">
+          <span class="material-symbols-outlined">local_shipping</span>
+          <h3>Seu Veículo Atual</h3>
+        </div>
+        <span class="status-chip" [class.active]="meuVeiculo.status === 'Em rota'">
+          {{ meuVeiculo.status }}
+        </span>
+      </div>
+
+      <div class="vehicle-details">
+        <div class="detail-item">
+          <span class="detail-label">Modelo</span>
+          <span class="detail-val">{{ meuVeiculo.modelo }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Placa</span>
+          <span class="detail-val badge-plate">{{ meuVeiculo.placa }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Nível de Combustível</span>
+          <span class="detail-val green">{{ meuVeiculo.nivel_combustivel }}%</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Quilometragem</span>
+          <span class="detail-val">{{ meuVeiculo.km_atual | number:'1.0-0' }} km</span>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <a [routerLink]="['/motorista/frota']" class="action-btn outline">Ver Detalhes da Frota</a>
+        <a [routerLink]="['/motorista/tarefas']" class="action-btn primary">Ver Minhas Tarefas</a>
+      </div>
+    </section>
+
+    <!-- No vehicles state -->
+    <section *ngIf="!loading && !meuVeiculo" class="current-vehicle-card">
+      <div class="card-header">
+        <div class="title-wrap">
+          <span class="material-symbols-outlined">local_shipping</span>
+          <h3>Nenhum veículo atribuído</h3>
+        </div>
+      </div>
+      <p style="color: #555f6f; margin: 0;">Você ainda não possui um veículo vinculado. Consulte sua frota para mais informações.</p>
+      <div class="card-actions" style="margin-top: var(--space-4);">
+        <a [routerLink]="['/motorista/frota']" class="action-btn primary">Ver Frota Disponível</a>
+      </div>
+    </section>
+  </div>
+</div>

@@ -122,3 +122,56 @@ h1 {
   background: var(--color-gray-400);
   cursor: progress;
 }
+
+.web-login-footer {
+  margin-top: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.web-login-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-primary-dark);
+    background-color: var(--color-primary-light);
+    text-decoration: underline;
+  }
+
+  .link-icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.2;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: var(--space-4);
+  }
+
+  .login-panel {
+    padding: var(--space-5);
+  }
+
+  .field input {
+    min-height: 48px;
+  }
+
+  .submit-button {
+    min-height: 48px;
+  }
+}
+

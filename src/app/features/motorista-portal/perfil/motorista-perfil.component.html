@@ -1,0 +1,67 @@
+<div class="perfil-page">
+  <div class="container">
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <span class="material-symbols-outlined spin">sync</span>
+      Carregando perfil...
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <!-- Profile Header Card -->
+      <section class="profile-card">
+        <div class="avatar-wrap">
+          <span class="material-symbols-outlined avatar-icon">person</span>
+        </div>
+        <div class="profile-info">
+          <h2 class="driver-name">{{ profile?.nome || email || 'Motorista' }}</h2>
+          <span class="driver-role">
+            {{ profile?.role === 'admin' ? 'Administrador' : 'Motorista' }}
+          </span>
+          <div class="driver-badges">
+            <span class="badge green">Conta Ativa</span>
+            <span class="badge blue" *ngIf="profile?.role">{{ profile?.role | titlecase }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Info -->
+      <section class="info-group-card">
+        <h3 class="card-title">
+          <span class="material-symbols-outlined">contact_mail</span>
+          Informações de Contato
+        </h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Nome</span>
+            <span class="value">{{ profile?.nome || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">E-mail</span>
+            <span class="value">{{ profile?.email || email || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Perfil</span>
+            <span class="value">{{ profile?.role | titlecase }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">ID do Usuário</span>
+            <span class="value" style="font-size: 0.8rem; word-break: break-all;">{{ profile?.id || '—' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Account Actions & Logout -->
+      <section class="account-actions">
+        <button class="action-btn outline">
+          <span class="material-symbols-outlined">lock_reset</span>
+          Alterar Senha
+        </button>
+        <button class="action-btn danger" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span>
+          Sair da Conta
+        </button>
+      </section>
+    </ng-container>
+  </div>
+</div>

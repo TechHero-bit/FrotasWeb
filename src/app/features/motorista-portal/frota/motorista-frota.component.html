@@ -1,0 +1,86 @@
+<div class="frota-page">
+  <div class="container">
+    <!-- Page Title Header -->
+    <div class="page-header">
+      <div>
+        <h2 class="title">Frota de Veículos</h2>
+        <p class="subtitle">Consulte o status e informações detalhadas da sua frota</p>
+      </div>
+      <button class="add-checklist-btn">
+        <span class="material-symbols-outlined">fact_check</span>
+        Novo Checklist
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <span class="material-symbols-outlined spin">sync</span>
+      Carregando veículos...
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <!-- Filters Bar -->
+      <div class="filters-bar">
+        <button
+          *ngFor="let filter of filters"
+          class="filter-chip"
+          [class.active]="selectedFilter === filter.id"
+          (click)="setFilter(filter.id)"
+        >
+          {{ filter.label }} ({{ filter.count }})
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredVehicles.length === 0" class="empty-state">
+        <span class="material-symbols-outlined empty-icon">directions_car</span>
+        <p>Nenhum veículo encontrado para este filtro.</p>
+      </div>
+
+      <!-- Vehicle List Cards -->
+      <div class="vehicle-grid">
+        <div *ngFor="let vehicle of filteredVehicles" class="vehicle-card">
+          <div class="card-top">
+            <div class="vehicle-info">
+              <span class="material-symbols-outlined vehicle-type-icon">local_shipping</span>
+              <div>
+                <h3 class="model-name">{{ vehicle.modelo }}</h3>
+                <span class="plate-badge">{{ vehicle.placa }}</span>
+              </div>
+            </div>
+            <span class="status-badge" [ngClass]="getStatusClass(vehicle.status)">
+              {{ vehicle.status }}
+            </span>
+          </div>
+
+          <div class="card-details">
+            <div class="info-row">
+              <span class="info-label">Quilometragem</span>
+              <span class="info-val">{{ vehicle.km_atual | number:'1.0-0' }} km</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Combustível</span>
+              <div class="fuel-bar-wrap">
+                <div class="fuel-bar" [style.width.%]="vehicle.nivel_combustivel"></div>
+                <span class="fuel-text">{{ vehicle.nivel_combustivel }}%</span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Responsável</span>
+              <span class="info-val">{{ vehicle.responsavel_nome || 'Não atribuído' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Localização</span>
+              <span class="info-val">{{ vehicle.localizacao || '—' }}</span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="action-btn outline">Checklist</button>
+            <button class="action-btn primary">Ver Registro</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
