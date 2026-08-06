@@ -217,9 +217,6 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     if (this.previewMap) {
-      // Map already exists — just reposition markers and update bounds
-      this.placeMarkers(lon1, lat1, lon2, lat2);
-
       // Remove old route layer/source before fetching a new one
       if (this.previewMap.getLayer('route-preview')) {
         this.previewMap.removeLayer('route-preview');
@@ -245,7 +242,6 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
     this.previewMap.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
     this.previewMap.on('load', () => {
-      this.placeMarkers(lon1, lat1, lon2, lat2);
       this.fetchRoutePreview(lon1, lat1, lon2, lat2);
     });
   }
@@ -299,6 +295,13 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
         : `${etaMins} min`;
 
       const coordinates = route.geometry.coordinates;
+
+      // Use actual route start and end points for markers to ensure they sit on the road
+      const routeLon1 = coordinates[0][0];
+      const routeLat1 = coordinates[0][1];
+      const routeLon2 = coordinates[coordinates.length - 1][0];
+      const routeLat2 = coordinates[coordinates.length - 1][1];
+      this.placeMarkers(routeLon1, routeLat1, routeLon2, routeLat2);
 
       // Add route line to map
       this.previewMap.addSource('route-preview', {
