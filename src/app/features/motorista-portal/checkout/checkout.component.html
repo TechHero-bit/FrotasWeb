@@ -1,0 +1,161 @@
+<div class="checkout-page">
+  <div class="container">
+    <div class="page-header">
+      <h2 class="title">Vistoria de Check-out</h2>
+      <p class="subtitle" *ngIf="jornada">
+        Devolução do veículo: <strong>{{ jornada.veiculo_placa }}</strong>
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <span class="material-symbols-outlined spin">sync</span>
+      Carregando dados da jornada...
+    </div>
+
+    <form *ngIf="!loading && jornada" [formGroup]="checkoutForm" (ngSubmit)="submitCheckout()" class="checkout-form">
+      
+      <!-- Resumo da Jornada -->
+      <section class="summary-section">
+        <h3 class="section-title">Resumo da Viagem</h3>
+        <div class="summary-card">
+          <div class="summary-item">
+            <span class="label">Origem</span>
+            <span class="value">{{ jornada.origem }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Destino</span>
+            <span class="value">{{ jornada.destino }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Início</span>
+            <span class="value">{{ jornada.iniciado_em | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="summary-item" *ngIf="jornada.veiculos">
+            <span class="label">KM Inicial</span>
+            <span class="value">{{ jornada.veiculos.km_atual | number:'1.0-0' }} km</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Condições Finais -->
+      <section class="form-section">
+        <h3 class="section-title">Condições Finais do Veículo</h3>
+        
+        <div class="grid-2">
+          <div class="form-group">
+            <label>KM Final</label>
+            <input type="number" formControlName="km_final" placeholder="Ex: 50200">
+          </div>
+          
+          <div class="form-group">
+            <label>Nível de Combustível (%)</label>
+            <select formControlName="nivel_combustivel">
+              <option value="100">100% (Cheio)</option>
+              <option value="75">75%</option>
+              <option value="50">50% (Meio tanque)</option>
+              <option value="25">25%</option>
+              <option value="0">Reserva</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group mt-3">
+          <label>Observações / Relato de Avarias</label>
+          <textarea formControlName="observacoes" rows="3" placeholder="Houve alguma avaria, ruído ou problema com o veículo? Descreva aqui."></textarea>
+        </div>
+      </section>
+
+      <!-- Fotos de Devolução Obrigatórias -->
+      <section class="form-section">
+        <h3 class="section-title">Fotos de Devolução (Obrigatório)</h3>
+        <p class="section-desc">Por favor, tire as fotos novamente para garantirmos a integridade na devolução.</p>
+        
+        <div class="photos-grid">
+          <!-- Selfie -->
+          <div class="photo-capture">
+            <label class="photo-box" [class.has-image]="fotos.selfie.preview">
+              <input type="file" accept="image/*" capture="user" (change)="onFileSelected($event, 'selfie')">
+              <img *ngIf="fotos.selfie.preview" [src]="fotos.selfie.preview" alt="Selfie">
+              <div class="placeholder" *ngIf="!fotos.selfie.preview">
+                <span class="material-symbols-outlined">face</span>
+                <span>Selfie Final</span>
+              </div>
+            </label>
+          </div>
+          
+          <!-- Painel -->
+          <div class="photo-capture">
+            <label class="photo-box" [class.has-image]="fotos.foto_painel.preview">
+              <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event, 'foto_painel')">
+              <img *ngIf="fotos.foto_painel.preview" [src]="fotos.foto_painel.preview" alt="Painel">
+              <div class="placeholder" *ngIf="!fotos.foto_painel.preview">
+                <span class="material-symbols-outlined">speed</span>
+                <span>Painel (Final)</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Frente -->
+          <div class="photo-capture">
+            <label class="photo-box" [class.has-image]="fotos.foto_frente.preview">
+              <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event, 'foto_frente')">
+              <img *ngIf="fotos.foto_frente.preview" [src]="fotos.foto_frente.preview" alt="Frente">
+              <div class="placeholder" *ngIf="!fotos.foto_frente.preview">
+                <span class="material-symbols-outlined">directions_car</span>
+                <span>Frente</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Traseira -->
+          <div class="photo-capture">
+            <label class="photo-box" [class.has-image]="fotos.foto_traseira.preview">
+              <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event, 'foto_traseira')">
+              <img *ngIf="fotos.foto_traseira.preview" [src]="fotos.foto_traseira.preview" alt="Traseira">
+              <div class="placeholder" *ngIf="!fotos.foto_traseira.preview">
+                <span class="material-symbols-outlined">directions_car</span>
+                <span>Traseira</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Lateral Esquerda -->
+          <div class="photo-capture">
+            <label class="photo-box" [class.has-image]="fotos.foto_lateral_esquerda.preview">
+              <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event, 'foto_lateral_esquerda')">
+              <img *ngIf="fotos.foto_lateral_esquerda.preview" [src]="fotos.foto_lateral_esquerda.preview" alt="Lateral Esq">
+              <div class="placeholder" *ngIf="!fotos.foto_lateral_esquerda.preview">
+                <span class="material-symbols-outlined">directions_car</span>
+                <span>Lateral Esq</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Lateral Direita -->
+          <div class="photo-capture">
+            <label class="photo-box" [class.has-image]="fotos.foto_lateral_direita.preview">
+              <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event, 'foto_lateral_direita')">
+              <img *ngIf="fotos.foto_lateral_direita.preview" [src]="fotos.foto_lateral_direita.preview" alt="Lateral Dir">
+              <div class="placeholder" *ngIf="!fotos.foto_lateral_direita.preview">
+                <span class="material-symbols-outlined">directions_car</span>
+                <span>Lateral Dir</span>
+              </div>
+            </label>
+          </div>
+
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <a routerLink="/motorista/jornada-ativa/{{jornadaId}}" class="btn-cancel" *ngIf="!submitting">
+          Voltar ao Mapa
+        </a>
+        <button type="submit" class="btn-submit" [disabled]="submitting || checkoutForm.invalid">
+          <span *ngIf="submitting" class="material-symbols-outlined spin">sync</span>
+          {{ submitting ? 'Enviando Vistoria...' : 'Finalizar Jornada' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

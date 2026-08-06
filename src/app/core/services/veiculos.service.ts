@@ -10,7 +10,7 @@ export interface Veiculo {
   localizacao: string;
   km_atual: number;
   nivel_combustivel: number;
-  responsavel_id?: string;
+  responsavel_id?: string | null;
   responsavel?: Partial<Motorista>;
   responsavel_nome?: string;
 }
@@ -51,7 +51,7 @@ export class VeiculosService {
     return data;
   }
 
-  async updateVeiculo(id: string, veiculo: AtualizarVeiculo): Promise<Veiculo> {
+  async updateVeiculo(id: string, veiculo: Partial<AtualizarVeiculo>): Promise<Veiculo> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .update(veiculo)
@@ -61,6 +61,10 @@ export class VeiculosService {
 
     if (error) throw error;
     return data;
+  }
+
+  async updateStatus(id: string, status: string): Promise<Veiculo> {
+    return this.updateVeiculo(id, { status } as Partial<AtualizarVeiculo>);
   }
 
   async deleteVeiculo(id: string): Promise<void> {

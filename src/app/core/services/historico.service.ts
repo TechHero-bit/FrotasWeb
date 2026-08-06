@@ -80,4 +80,71 @@ export class HistoricoService {
       veiculo_placa: j.veiculos ? `${j.veiculos.modelo} (${j.veiculos.placa})` : 'Desconhecido'
     }));
   }
+
+  async getJornadaAtivaPorMotorista(motoristaId: string): Promise<Jornada | null> {
+    const { data, error } = await this.supabase.client
+      .from(this.TABLE)
+      .select('*, veiculos (placa, modelo)')
+      .eq('usuario_id', motoristaId)
+      .eq('status', 'Em andamento')
+      .order('iniciado_em', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    
+    if (data) {
+       data.veiculo_placa = data.veiculos ? `${data.veiculos.modelo} (${data.veiculos.placa})` : 'Desconhecido';
+    }
+    
+    return data || null;
+  }
+  
+  async getJornadaById(id: string): Promise<Jornada> {
+    const { data, error } = await this.supabase.client
+      .from(this.TABLE)
+      .select('*, veiculos (placa, modelo)')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    data.veiculo_placa = data.veiculos ? `${data.veiculos.modelo} (${data.veiculos.placa})` : 'Desconhecido';
+    return data;
+  }
+
+  async iniciarJornada(jornada: Partial<Jornada>, checkin: Checkin): Promise<Jornada> {
+    const { data: jornadaData, error: jornadaError } = await this.supabase.client
+      .from(this.TABLE)
+      .insert(jornada)
+      .select()
+      .single();
+
+    if (jornadaError) throw jornadaError;
+
+    const { error: checkinError } = await this.supabase.client
+      .from('checkins')
+      .insert({ ...checkin, jornada_id: jornadaData.id });
+
+    if (checkinError) throw checkinError;
+
+    return jornadaData;
+  }
+
+  async finalizarJornada(id: string, checkout: Checkout): Promise<void> {
+    const { error: checkoutError } = await this.supabase.client
+      .from('checkouts')
+      .insert({ ...checkout, jornada_id: id });
+
+    if (checkoutError) throw checkoutError;
+
+    const encerrado_em = new Date().toISOString();
+    const hora_fim = new Date().toLocaleTimeString('pt-BR');
+
+    const { error: jornadaError } = await this.supabase.client
+      .from(this.TABLE)
+      .update({ status: 'Concluída', encerrado_em, hora_fim })
+      .eq('id', id);
+
+    if (jornadaError) throw jornadaError;
+  }
 }

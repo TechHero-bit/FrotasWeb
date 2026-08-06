@@ -54,6 +54,27 @@ export const routes: Routes = [
           import('./features/motorista-portal/perfil/motorista-perfil.component').then(
             (m) => m.MotoristaPerfilComponent
           )
+      },
+      {
+        path: 'checkin/:id',
+        loadComponent: () =>
+          import('./features/motorista-portal/checkin/checkin.component').then(
+            (m) => m.CheckinComponent
+          )
+      },
+      {
+        path: 'jornada-ativa/:id',
+        loadComponent: () =>
+          import('./features/motorista-portal/jornada-ativa/jornada-ativa.component').then(
+            (m) => m.JornadaAtivaComponent
+          )
+      },
+      {
+        path: 'checkout/:id',
+        loadComponent: () =>
+          import('./features/motorista-portal/checkout/checkout.component').then(
+            (m) => m.CheckoutComponent
+          )
       }
     ]
   },

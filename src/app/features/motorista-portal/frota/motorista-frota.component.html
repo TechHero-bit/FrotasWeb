@@ -76,8 +76,17 @@
           </div>
 
           <div class="card-footer">
-            <button class="action-btn outline">Checklist</button>
-            <button class="action-btn primary">Ver Registro</button>
+            <button 
+              *ngIf="vehicle.status === 'Disponível'" 
+              class="action-btn primary" 
+              [routerLink]="['/motorista/checkin', vehicle.id]">
+              Iniciar Check-in
+            </button>
+            <button 
+              *ngIf="vehicle.status !== 'Disponível'"
+              class="action-btn outline">
+              Ver Registro
+            </button>
           </div>
         </div>
       </div>

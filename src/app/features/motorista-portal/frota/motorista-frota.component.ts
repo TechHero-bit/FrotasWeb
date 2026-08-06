@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { VeiculosService, Veiculo } from '../../../core/services/veiculos.service';
 
 @Component({
   selector: 'app-motorista-frota',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './motorista-frota.component.html',
   styleUrl: './motorista-frota.component.scss'
 })
