@@ -229,7 +229,7 @@ export class CheckinComponent implements OnInit {
       });
 
       // 4. Navegar para Jornada Ativa
-      this.router.navigate(['/motorista/jornada-ativa', jornadaCriada.id]);
+      this.router.navigate(['/motorista/jornada', jornadaCriada.id]);
 
     } catch (e) {
       console.error(e);

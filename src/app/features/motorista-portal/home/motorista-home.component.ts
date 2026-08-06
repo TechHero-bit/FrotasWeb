@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { VeiculosService, Veiculo } from '../../../core/services/veiculos.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { HistoricoService, Jornada } from '../../../core/services/historico.service';
 
 @Component({
   selector: 'app-motorista-home',
@@ -16,6 +17,7 @@ export class MotoristaHomeComponent implements OnInit {
   jornadaAtiva = false;
   loading = true;
   driverName = '';
+  jornadaAtivaAtual: Jornada | null = null;
 
   veiculos: Veiculo[] = [];
   meuVeiculo: Veiculo | null = null;
@@ -26,7 +28,9 @@ export class MotoristaHomeComponent implements OnInit {
 
   constructor(
     private readonly veiculosService: VeiculosService,
-    private readonly supabaseService: SupabaseService
+    private readonly supabaseService: SupabaseService,
+    private readonly historicoService: HistoricoService,
+    private readonly router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -34,7 +38,19 @@ export class MotoristaHomeComponent implements OnInit {
   }
 
   iniciarJornada(): void {
-    this.jornadaAtiva = !this.jornadaAtiva;
+    if (this.loading) return;
+
+    if (this.jornadaAtivaAtual) {
+      this.router.navigate(['/motorista/jornada', this.jornadaAtivaAtual.id]);
+      return;
+    }
+
+    if (this.meuVeiculo) {
+      this.router.navigate(['/motorista/checkin', this.meuVeiculo.id]);
+      return;
+    }
+
+    this.router.navigate(['/motorista/frota']);
   }
 
   private async loadData(): Promise<void> {
@@ -45,6 +61,8 @@ export class MotoristaHomeComponent implements OnInit {
       if (session?.user) {
         const profile = await this.supabaseService.getUserProfile(session.user.id);
         this.driverName = profile.nome || profile.email || 'Motorista';
+        this.jornadaAtivaAtual = await this.historicoService.getJornadaAtivaPorMotorista(session.user.id);
+        this.jornadaAtiva = !!this.jornadaAtivaAtual;
       }
 
       // Load vehicles
@@ -54,11 +72,11 @@ export class MotoristaHomeComponent implements OnInit {
       this.countEmRota = this.veiculos.filter(v => v.status === 'Em rota').length;
       this.countManutencao = this.veiculos.filter(v => v.status === 'Manutenção').length;
 
-      // Pick first "Em rota" vehicle as "meuVeiculo", fallback to first available
+      // Prioriza o veículo da jornada ativa; se não houver, usa um veículo disponível.
       this.meuVeiculo =
-        this.veiculos.find(v => v.status === 'Em rota') ||
+        this.veiculos.find(v => v.id === this.jornadaAtivaAtual?.veiculo_id) ||
         this.veiculos.find(v => v.status === 'Disponível') ||
-        this.veiculos[0] || null;
+        null;
     } catch {
       // Silently handle — template shows defaults
     } finally {

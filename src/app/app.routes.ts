@@ -63,11 +63,15 @@ export const routes: Routes = [
           )
       },
       {
-        path: 'jornada-ativa/:id',
+        path: 'jornada/:id',
         loadComponent: () =>
           import('./features/motorista-portal/jornada-ativa/jornada-ativa.component').then(
             (m) => m.JornadaAtivaComponent
           )
+      },
+      {
+        path: 'jornada-ativa/:id',
+        redirectTo: 'jornada/:id'
       },
       {
         path: 'checkout/:id',

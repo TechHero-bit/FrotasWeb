@@ -148,7 +148,7 @@
       </section>
 
       <div class="form-actions">
-        <a routerLink="/motorista/jornada-ativa/{{jornadaId}}" class="btn-cancel" *ngIf="!submitting">
+        <a [routerLink]="['/motorista/jornada', jornadaId]" class="btn-cancel" *ngIf="!submitting">
           Voltar ao Mapa
         </a>
         <button type="submit" class="btn-submit" [disabled]="submitting || checkoutForm.invalid">
