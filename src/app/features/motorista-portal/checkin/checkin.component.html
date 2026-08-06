@@ -9,16 +9,22 @@
 
   <div class="container">
     <div class="page-header">
-      <h2 class="title">Vistoria de Check-in</h2>
-      <p class="subtitle" *ngIf="veiculo">
-        Veículo Selecionado: <strong>{{ veiculo.modelo }} ({{ veiculo.placa }})</strong>
-      </p>
+      <h2 class="title">
+        Check-in <ng-container *ngIf="veiculo">{{ veiculo.modelo }} ({{ veiculo.placa }})</ng-container>
+      </h2>
     </div>
 
     <!-- Loading State -->
     <div *ngIf="loading" class="loading-state">
       <span class="material-symbols-outlined spin">sync</span>
       Carregando dados...
+    </div>
+
+    <!-- Falha ao encontrar Veículo -->
+    <div *ngIf="!loading && !veiculo" class="error-state" style="text-align: center; padding: 2rem;">
+      <span class="material-symbols-outlined" style="font-size: 48px; color: var(--error);">error</span>
+      <h3>Veículo não encontrado</h3>
+      <p>Não foi possível carregar as informações do veículo para o Check-in. Verifique se o veículo selecionado está correto.</p>
     </div>
 
     <form *ngIf="!loading && veiculo" [formGroup]="checkinForm" (ngSubmit)="submitCheckin()" class="checkin-form">
