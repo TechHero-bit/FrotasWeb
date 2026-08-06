@@ -37,8 +37,14 @@ export class MotoristaHomeComponent implements OnInit {
     await this.loadData();
   }
 
-  iniciarJornada(): void {
+  async iniciarJornada(): Promise<void> {
     if (this.loading) return;
+
+    const session = await this.supabaseService.getCurrentSession();
+    if (!session?.user) {
+      this.router.navigate(['/login']);
+      return;
+    }
 
     if (this.jornadaAtivaAtual) {
       this.router.navigate(['/motorista/jornada', this.jornadaAtivaAtual.id]);
