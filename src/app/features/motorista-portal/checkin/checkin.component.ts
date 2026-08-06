@@ -233,7 +233,7 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
     // First time — create the map
     this.previewMap = new maplibregl.Map({
       container: this.mapPreviewContainer.nativeElement,
-      style: `https://tiles.locationiq.com/v3/streets/vector.json?key=${LOCATIONIQ_TOKEN}`,
+      style: 'https://tiles.openfreemap.org/styles/liberty',
       bounds: bounds,
       fitBoundsOptions: { padding: 60 }
     });
@@ -242,6 +242,7 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
     this.previewMap.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
     this.previewMap.on('load', () => {
+      this.previewMap?.resize(); // Força resize para corrigir eventuais bugs de tela do maplibre
       this.fetchRoutePreview(lon1, lat1, lon2, lat2);
     });
   }
@@ -259,16 +260,24 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!this.previewMap) return;
 
-    // Marcador verde — Ida (Origem)
-    this.originMarker = new maplibregl.Marker({ color: '#16a34a' })
+    // Elemento HTML customizado - Marcador de Origem (Ida - Vermelho)
+    const elOrigem = document.createElement('div');
+    elOrigem.className = 'marker-origin';
+    elOrigem.innerHTML = '<div class="dot"></div>';
+
+    this.originMarker = new maplibregl.Marker({ element: elOrigem })
       .setLngLat([lon1, lat1])
-      .setPopup(new maplibregl.Popup({ offset: 25 }).setText('🟢 Ida (Origem): ' + this.checkinForm.value.origem))
+      .setPopup(new maplibregl.Popup({ offset: 15 }).setText('🔴 Ida (Origem): ' + this.checkinForm.value.origem))
       .addTo(this.previewMap);
 
-    // Marcador vermelho — Chegada (Destino)
-    this.destinationMarker = new maplibregl.Marker({ color: '#dc2626' })
+    // Elemento HTML customizado - Marcador de Destino (Chegada - Verde)
+    const elDestino = document.createElement('div');
+    elDestino.className = 'marker-destination';
+    elDestino.innerHTML = '<div class="dot"></div>';
+
+    this.destinationMarker = new maplibregl.Marker({ element: elDestino })
       .setLngLat([lon2, lat2])
-      .setPopup(new maplibregl.Popup({ offset: 25 }).setText('🔴 Chegada (Destino): ' + this.checkinForm.value.destino))
+      .setPopup(new maplibregl.Popup({ offset: 15 }).setText('🟢 Chegada (Destino): ' + this.checkinForm.value.destino))
       .addTo(this.previewMap);
   }
 

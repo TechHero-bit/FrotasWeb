@@ -329,3 +329,40 @@
     height: 280px;
   }
 }
+
+// ── Custom Map Markers ──
+.marker-origin {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(139, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #b91c1c; // primary red
+    border: 2px solid white;
+  }
+}
+
+.marker-destination {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(40, 167, 69, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #28a745; // success green
+    border: 2px solid white;
+  }
+}
