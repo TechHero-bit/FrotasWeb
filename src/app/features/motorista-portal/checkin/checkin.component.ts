@@ -44,6 +44,8 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Map preview
   previewMap: maplibregl.Map | null = null;
+  private originMarker: maplibregl.Marker | null = null;
+  private destinationMarker: maplibregl.Marker | null = null;
   routeDistance: string = '';
   routeEta: string = '';
   routeLoading = false;
@@ -94,6 +96,14 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.originMarker) {
+      this.originMarker.remove();
+      this.originMarker = null;
+    }
+    if (this.destinationMarker) {
+      this.destinationMarker.remove();
+      this.destinationMarker = null;
+    }
     if (this.previewMap) {
       this.previewMap.remove();
       this.previewMap = null;
@@ -141,7 +151,9 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
 
   searchLocation(term: string) {
     if (!term || term.length < 3) return of([]);
-    const url = `https://api.locationiq.com/v1/autocomplete.php?key=${LOCATIONIQ_TOKEN}&q=${encodeURIComponent(term)}&countrycodes=br&limit=5&addressdetails=1&format=json`;
+    // Bounding box do estado do Rio de Janeiro: W, S, E, N
+    const rjViewbox = '-44.889,-23.370,-40.958,-20.764';
+    const url = `https://api.locationiq.com/v1/autocomplete.php?key=${LOCATIONIQ_TOKEN}&q=${encodeURIComponent(term)}&countrycodes=br&limit=5&addressdetails=1&format=json&bounded=1&viewbox=${rjViewbox}`;
     return this.http.get<any[]>(url).pipe(
       catchError(() => of([]))
     );
@@ -193,12 +205,6 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.origemLat == null || this.origemLon == null ||
         this.destinoLat == null || this.destinoLon == null) return;
 
-    // Remove previous map instance if exists
-    if (this.previewMap) {
-      this.previewMap.remove();
-      this.previewMap = null;
-    }
-
     const lon1 = this.origemLon;
     const lat1 = this.origemLat;
     const lon2 = this.destinoLon;
@@ -210,6 +216,24 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
       [Math.max(lon1, lon2), Math.max(lat1, lat2)]
     );
 
+    if (this.previewMap) {
+      // Map already exists — just reposition markers and update bounds
+      this.placeMarkers(lon1, lat1, lon2, lat2);
+
+      // Remove old route layer/source before fetching a new one
+      if (this.previewMap.getLayer('route-preview')) {
+        this.previewMap.removeLayer('route-preview');
+      }
+      if (this.previewMap.getSource('route-preview')) {
+        this.previewMap.removeSource('route-preview');
+      }
+
+      this.previewMap.fitBounds(bounds, { padding: 60 });
+      this.fetchRoutePreview(lon1, lat1, lon2, lat2);
+      return;
+    }
+
+    // First time — create the map
     this.previewMap = new maplibregl.Map({
       container: this.mapPreviewContainer.nativeElement,
       style: `https://tiles.locationiq.com/v3/streets/vector.json?key=${LOCATIONIQ_TOKEN}`,
@@ -221,21 +245,35 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
     this.previewMap.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
     this.previewMap.on('load', () => {
-      // Origin marker
-      new maplibregl.Marker({ color: '#b91c1c' })
-        .setLngLat([lon1, lat1])
-        .setPopup(new maplibregl.Popup({ offset: 25 }).setText('Origem: ' + this.checkinForm.value.origem))
-        .addTo(this.previewMap!);
-
-      // Destination marker
-      new maplibregl.Marker({ color: '#137333' })
-        .setLngLat([lon2, lat2])
-        .setPopup(new maplibregl.Popup({ offset: 25 }).setText('Destino: ' + this.checkinForm.value.destino))
-        .addTo(this.previewMap!);
-
-      // Fetch route via OSRM
+      this.placeMarkers(lon1, lat1, lon2, lat2);
       this.fetchRoutePreview(lon1, lat1, lon2, lat2);
     });
+  }
+
+  private placeMarkers(lon1: number, lat1: number, lon2: number, lat2: number) {
+    // Remove existing markers before re-placing them
+    if (this.originMarker) {
+      this.originMarker.remove();
+      this.originMarker = null;
+    }
+    if (this.destinationMarker) {
+      this.destinationMarker.remove();
+      this.destinationMarker = null;
+    }
+
+    if (!this.previewMap) return;
+
+    // Marcador verde — Ida (Origem)
+    this.originMarker = new maplibregl.Marker({ color: '#16a34a' })
+      .setLngLat([lon1, lat1])
+      .setPopup(new maplibregl.Popup({ offset: 25 }).setText('🟢 Ida (Origem): ' + this.checkinForm.value.origem))
+      .addTo(this.previewMap);
+
+    // Marcador vermelho — Chegada (Destino)
+    this.destinationMarker = new maplibregl.Marker({ color: '#dc2626' })
+      .setLngLat([lon2, lat2])
+      .setPopup(new maplibregl.Popup({ offset: 25 }).setText('🔴 Chegada (Destino): ' + this.checkinForm.value.destino))
+      .addTo(this.previewMap);
   }
 
   fetchRoutePreview(lon1: number, lat1: number, lon2: number, lat2: number) {
