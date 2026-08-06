@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
+import * as maplibregl from 'maplibre-gl';
 
 import { VeiculosService, Veiculo } from '../../../core/services/veiculos.service';
 import { HistoricoService } from '../../../core/services/historico.service';
@@ -19,7 +20,8 @@ const LOCATIONIQ_TOKEN = 'pk.2bd751445ee7150a339d49346a83657a';
   templateUrl: './checkin.component.html',
   styleUrl: './checkin.component.scss'
 })
-export class CheckinComponent implements OnInit {
+export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('mapPreviewContainer', { static: false }) mapPreviewContainer!: ElementRef;
   veiculoId: string = '';
   veiculo: Veiculo | null = null;
   loading = true;
@@ -39,6 +41,13 @@ export class CheckinComponent implements OnInit {
   origemLon?: number;
   destinoLat?: number;
   destinoLon?: number;
+
+  // Map preview
+  previewMap: maplibregl.Map | null = null;
+  routeDistance: string = '';
+  routeEta: string = '';
+  routeLoading = false;
+  showRoutePreview = false;
 
   fotos = {
     foto_painel: { file: null as File | null, preview: '' },
@@ -78,6 +87,17 @@ export class CheckinComponent implements OnInit {
     });
 
     this.setupAutocomplete();
+  }
+
+  ngAfterViewInit(): void {
+    // Map will be initialized when both addresses are selected
+  }
+
+  ngOnDestroy(): void {
+    if (this.previewMap) {
+      this.previewMap.remove();
+      this.previewMap = null;
+    }
   }
 
   async loadVeiculo() {
@@ -144,6 +164,7 @@ export class CheckinComponent implements OnInit {
     this.origemLat = parseFloat(result.lat);
     this.origemLon = parseFloat(result.lon);
     this.showOrigemResults = false;
+    this.tryLoadRoutePreview();
   }
 
   selectDestino(result: any) {
@@ -151,6 +172,133 @@ export class CheckinComponent implements OnInit {
     this.destinoLat = parseFloat(result.lat);
     this.destinoLon = parseFloat(result.lon);
     this.showDestinoResults = false;
+    this.tryLoadRoutePreview();
+  }
+
+  tryLoadRoutePreview() {
+    if (this.origemLat != null && this.origemLon != null &&
+        this.destinoLat != null && this.destinoLon != null) {
+      this.showRoutePreview = true;
+      this.routeLoading = true;
+      this.routeDistance = '';
+      this.routeEta = '';
+
+      // Wait for the DOM to render the map container
+      setTimeout(() => this.initPreviewMap(), 150);
+    }
+  }
+
+  initPreviewMap() {
+    if (!this.mapPreviewContainer) return;
+    if (this.origemLat == null || this.origemLon == null ||
+        this.destinoLat == null || this.destinoLon == null) return;
+
+    // Remove previous map instance if exists
+    if (this.previewMap) {
+      this.previewMap.remove();
+      this.previewMap = null;
+    }
+
+    const lon1 = this.origemLon;
+    const lat1 = this.origemLat;
+    const lon2 = this.destinoLon;
+    const lat2 = this.destinoLat;
+
+    // Calculate initial bounds for immediate zoom
+    const bounds = new maplibregl.LngLatBounds(
+      [Math.min(lon1, lon2), Math.min(lat1, lat2)],
+      [Math.max(lon1, lon2), Math.max(lat1, lat2)]
+    );
+
+    this.previewMap = new maplibregl.Map({
+      container: this.mapPreviewContainer.nativeElement,
+      style: 'https://demotiles.maplibre.org/style.json',
+      bounds: bounds,
+      fitBoundsOptions: { padding: 60 }
+    });
+
+    this.previewMap.addControl(new maplibregl.NavigationControl(), 'top-right');
+    this.previewMap.addControl(new maplibregl.FullscreenControl(), 'top-right');
+
+    this.previewMap.on('load', () => {
+      // Origin marker
+      new maplibregl.Marker({ color: '#b91c1c' })
+        .setLngLat([lon1, lat1])
+        .setPopup(new maplibregl.Popup({ offset: 25 }).setText('Origem: ' + this.checkinForm.value.origem))
+        .addTo(this.previewMap!);
+
+      // Destination marker
+      new maplibregl.Marker({ color: '#137333' })
+        .setLngLat([lon2, lat2])
+        .setPopup(new maplibregl.Popup({ offset: 25 }).setText('Destino: ' + this.checkinForm.value.destino))
+        .addTo(this.previewMap!);
+
+      // Fetch route via OSRM
+      this.fetchRoutePreview(lon1, lat1, lon2, lat2);
+    });
+  }
+
+  fetchRoutePreview(lon1: number, lat1: number, lon2: number, lat2: number) {
+    const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=full&geometries=geojson`;
+
+    this.http.get<any>(url).pipe(
+      catchError(() => {
+        this.routeLoading = false;
+        return of(null);
+      })
+    ).subscribe(res => {
+      this.routeLoading = false;
+
+      if (!res || !res.routes || res.routes.length === 0 || !this.previewMap) return;
+
+      const route = res.routes[0];
+
+      // Update distance and ETA
+      this.routeDistance = (route.distance / 1000).toFixed(1) + ' km';
+      const etaMins = Math.ceil(route.duration / 60);
+      this.routeEta = etaMins > 60
+        ? `${Math.floor(etaMins / 60)}h ${etaMins % 60}min`
+        : `${etaMins} min`;
+
+      const coordinates = route.geometry.coordinates;
+
+      // Add route line to map
+      this.previewMap.addSource('route-preview', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: coordinates
+          }
+        }
+      });
+
+      this.previewMap.addLayer({
+        id: 'route-preview',
+        type: 'line',
+        source: 'route-preview',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#1a73e8',
+          'line-width': 5,
+          'line-opacity': 0.8
+        }
+      });
+
+      // Fit bounds to the route
+      const routeBounds = coordinates.reduce((b: maplibregl.LngLatBounds, coord: [number, number]) => {
+        return b.extend(coord);
+      }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+
+      this.previewMap.fitBounds(routeBounds, {
+        padding: 60
+      });
+    });
   }
 
   onFileSelected(event: Event, key: keyof typeof this.fotos) {

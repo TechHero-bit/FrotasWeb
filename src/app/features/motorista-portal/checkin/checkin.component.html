@@ -54,6 +54,40 @@
         </div>
       </section>
 
+      <!-- Pré-visualização da Rota -->
+      <section class="form-section route-preview-section" *ngIf="showRoutePreview">
+        <h3 class="section-title">Pré-visualização da Rota</h3>
+
+        <!-- Route Info Cards -->
+        <div class="route-info-cards">
+          <div class="route-info-card">
+            <span class="material-symbols-outlined card-icon distance-icon">map</span>
+            <div class="card-content">
+              <span class="card-label">Distância</span>
+              <span class="card-value" *ngIf="routeDistance">{{ routeDistance }}</span>
+              <span class="card-value loading-pulse" *ngIf="!routeDistance">Calculando...</span>
+            </div>
+          </div>
+          <div class="route-info-card">
+            <span class="material-symbols-outlined card-icon eta-icon">schedule</span>
+            <div class="card-content">
+              <span class="card-label">Tempo Estimado (ETA)</span>
+              <span class="card-value" *ngIf="routeEta">{{ routeEta }}</span>
+              <span class="card-value loading-pulse" *ngIf="!routeEta">Calculando...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-preview-wrapper">
+          <div class="map-loading-overlay" *ngIf="routeLoading">
+            <span class="material-symbols-outlined spin">sync</span>
+            Carregando rota...
+          </div>
+          <div class="map-preview-container" #mapPreviewContainer></div>
+        </div>
+      </section>
+
       <!-- Condições do Veículo -->
       <section class="form-section">
         <h3 class="section-title">Condições Iniciais do Veículo</h3>
