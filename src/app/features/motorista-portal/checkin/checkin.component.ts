@@ -212,7 +212,7 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.previewMap = new maplibregl.Map({
       container: this.mapPreviewContainer.nativeElement,
-      style: 'https://demotiles.maplibre.org/style.json',
+      style: `https://tiles.locationiq.com/v3/streets/vector.json?key=${LOCATIONIQ_TOKEN}`,
       bounds: bounds,
       fitBoundsOptions: { padding: 60 }
     });
