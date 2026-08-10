@@ -10,4 +10,5 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 context/
-graphify-out/
+graphify-out/
+DataBase.sql

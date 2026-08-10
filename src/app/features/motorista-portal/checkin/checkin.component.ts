@@ -398,13 +398,14 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
       const dataInicio = new Date();
       
       const novaJornada = {
-        usuario_id: session.user.id,
+        motorista_id: session.user.id,
         veiculo_id: this.veiculoId,
         origem: formValue.origem,
         destino: formValue.destino,
         status: 'Em andamento',
         iniciado_em: dataInicio.toISOString(),
-        hora_inicio: dataInicio.toLocaleTimeString('pt-BR'),
+        chegada_estimada: new Date(dataInicio.getTime() + 60*60*1000).toISOString(), // estimated 1h later
+        km_inicial: parseInt(formValue.km_inicial, 10),
         origem_latitude: this.origemLat,
         origem_longitude: this.origemLon,
         destino_latitude: this.destinoLat,
@@ -412,12 +413,12 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
       };
 
       const novoCheckin = {
-        foto_painel_uri: urls.foto_painel,
-        selfie_uri: urls.selfie,
-        foto_frente_uri: urls.foto_frente,
-        foto_traseira_uri: urls.foto_traseira,
-        foto_lateral_esquerda_uri: urls.foto_lateral_esquerda,
-        foto_lateral_direita_uri: urls.foto_lateral_direita
+        veiculo_id: this.veiculoId,
+        nivel_combustivel: formValue.nivel_combustivel.toString(),
+        km: parseInt(formValue.km_inicial, 10),
+        foto_painel_uri: urls.foto_painel || '',
+        selfie_uri: urls.selfie || '',
+        foto_placa_uri: urls.foto_frente || ''
       };
 
       const jornadaCriada = await this.historicoService.iniciarJornada(novaJornada, novoCheckin);

@@ -58,11 +58,11 @@ interface PhotoSlot {
               <div class="info-row mt-3">
                 <div class="info-group">
                   <span class="label">Início</span>
-                  <span class="value">{{ (jornada.hora_inicio || jornada.iniciado_em) ? ((jornada.hora_inicio || jornada.iniciado_em) | date:'short') : 'N/A' }}</span>
+                  <span class="value">{{ jornada.iniciado_em ? (jornada.iniciado_em | date:'short') : 'N/A' }}</span>
                 </div>
                 <div class="info-group">
                   <span class="label">Término</span>
-                  <span class="value">{{ (jornada.hora_fim || jornada.encerrado_em) ? ((jornada.hora_fim || jornada.encerrado_em) | date:'short') : 'N/A' }}</span>
+                  <span class="value">{{ jornada.encerrado_em ? (jornada.encerrado_em | date:'short') : 'N/A' }}</span>
                 </div>
               </div>
             </div>

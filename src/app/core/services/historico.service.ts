@@ -27,15 +27,13 @@ export interface Checkout {
 
 export interface Jornada {
   id: string;
-  usuario_id: string;
+  motorista_id: string;
   veiculo_id: string;
   origem: string;
   destino: string;
   status: string;
   iniciado_em: string;
   encerrado_em?: string;
-  hora_inicio?: string;
-  hora_fim?: string;
   origem_latitude?: number;
   origem_longitude?: number;
   destino_latitude?: number;
@@ -85,7 +83,7 @@ export class HistoricoService {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
       .select('*, veiculos (placa, modelo)')
-      .eq('usuario_id', motoristaId)
+      .eq('motorista_id', motoristaId)
       .eq('status', 'Em andamento')
       .order('iniciado_em', { ascending: false })
       .limit(1)
@@ -130,7 +128,7 @@ export class HistoricoService {
     return jornadaData;
   }
 
-  async finalizarJornada(id: string, checkout: Checkout): Promise<void> {
+  async finalizarJornada(id: string, checkout: Checkout, kmFinal: number): Promise<void> {
     const { error: checkoutError } = await this.supabase.client
       .from('checkouts')
       .insert({ ...checkout, jornada_id: id });
@@ -138,11 +136,10 @@ export class HistoricoService {
     if (checkoutError) throw checkoutError;
 
     const encerrado_em = new Date().toISOString();
-    const hora_fim = new Date().toLocaleTimeString('pt-BR');
 
     const { error: jornadaError } = await this.supabase.client
       .from(this.TABLE)
-      .update({ status: 'Concluída', encerrado_em, hora_fim })
+      .update({ status: 'Concluída', encerrado_em, km_final: kmFinal })
       .eq('id', id);
 
     if (jornadaError) throw jornadaError;

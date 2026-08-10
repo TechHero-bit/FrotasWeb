@@ -130,16 +130,15 @@ export class CheckoutComponent implements OnInit {
 
       // 2. Checkout data
       const novoCheckout = {
-        foto_painel_uri: urls.foto_painel,
-        selfie_uri: urls.selfie,
-        foto_frente_uri: urls.foto_frente,
-        foto_traseira_uri: urls.foto_traseira,
-        foto_lateral_esquerda_uri: urls.foto_lateral_esquerda,
-        foto_lateral_direita_uri: urls.foto_lateral_direita,
+        veiculo_id: this.jornada.veiculo_id,
+        nivel_combustivel: formValue.nivel_combustivel.toString(),
+        foto_painel_uri: urls.foto_painel || '',
+        selfie_uri: urls.selfie || '',
+        foto_veiculo_uri: urls.foto_frente || '',
         observacoes: formValue.observacoes
       };
 
-      await this.historicoService.finalizarJornada(this.jornadaId, novoCheckout);
+      await this.historicoService.finalizarJornada(this.jornadaId, novoCheckout, parseFloat(formValue.km_final));
 
       // 3. Atualizar Veiculo para Disponível
       await this.veiculosService.updateVeiculo(this.jornada.veiculo_id, {
