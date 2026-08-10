@@ -119,13 +119,25 @@ export class CheckoutComponent implements OnInit {
       const urls: any = {};
       const folder = `jornadas/${session.user.id}/${Date.now()}`;
       
+      const uploadErrors: Array<{ key: string; error: any }> = [];
       for (const [key, data] of Object.entries(this.fotos)) {
         if (data.file) {
-          const compressed = await this.storageService.compressImage(data.file);
-          const ext = data.file.name.split('.').pop() || 'jpg';
-          const path = `${folder}/${key}_out.${ext}`;
-          urls[key] = await this.storageService.uploadFile(compressed, path);
+          try {
+            const compressed = await this.storageService.compressImage(data.file);
+            const ext = data.file.name.split('.').pop() || 'jpg';
+            const path = `${folder}/${key}_out.${ext}`;
+            urls[key] = await this.storageService.uploadFile(compressed, path);
+          } catch (err) {
+            console.error('Falha ao enviar arquivo', key, err);
+            uploadErrors.push({ key, error: err });
+            urls[key] = '';
+          }
         }
+      }
+
+      if (uploadErrors.length > 0) {
+        const failed = uploadErrors.map(u => u.key).join(', ');
+        throw new Error(`Falha no upload das imagens: ${failed}`);
       }
 
       // 2. Checkout data
@@ -134,7 +146,10 @@ export class CheckoutComponent implements OnInit {
         nivel_combustivel: formValue.nivel_combustivel.toString(),
         foto_painel_uri: urls.foto_painel || '',
         selfie_uri: urls.selfie || '',
-        foto_veiculo_uri: urls.foto_frente || '',
+        foto_frente_uri: urls.foto_frente || '',
+        foto_traseira_uri: urls.foto_traseira || '',
+        foto_lateral_esquerda_uri: urls.foto_lateral_esquerda || '',
+        foto_lateral_direita_uri: urls.foto_lateral_direita || '',
         observacoes: formValue.observacoes
       };
 
@@ -151,9 +166,9 @@ export class CheckoutComponent implements OnInit {
       // 4. Navegar para Home
       this.router.navigate(['/motorista/home']);
 
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('Erro ao finalizar a jornada. Tente novamente.');
+      alert('Erro ao finalizar a jornada: ' + (e?.message || JSON.stringify(e)));
     } finally {
       this.submitting = false;
     }

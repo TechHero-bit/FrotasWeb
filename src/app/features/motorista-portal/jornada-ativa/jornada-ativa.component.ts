@@ -95,7 +95,7 @@ export class JornadaAtivaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.map = new maplibregl.Map({
       container: this.mapContainer.nativeElement,
-      style: 'https://demotiles.maplibre.org/style.json', // Estilo open source do MapLibre
+      style: 'https://tiles.openfreemap.org/styles/liberty', 
       center: [lon1, lat1],
       zoom: 12
     });
@@ -104,6 +104,7 @@ export class JornadaAtivaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map.addControl(new maplibregl.NavigationControl({}), 'top-right');
 
     this.map.on('load', () => {
+      setTimeout(() => this.map?.resize(), 200); // Fix mobile visual bug
       // Adicionar marcador de origem
       new maplibregl.Marker({ color: '#b91c1c' })
         .setLngLat([lon1, lat1])

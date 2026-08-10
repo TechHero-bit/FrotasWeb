@@ -384,13 +384,25 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
       const urls: any = {};
       const folder = `jornadas/${session.user.id}/${Date.now()}`;
       
+      const uploadErrors: Array<{ key: string; error: any }> = [];
       for (const [key, data] of Object.entries(this.fotos)) {
         if (data.file) {
-          const compressed = await this.storageService.compressImage(data.file);
-          const ext = data.file.name.split('.').pop() || 'jpg';
-          const path = `${folder}/${key}_in.${ext}`;
-          urls[key] = await this.storageService.uploadFile(compressed, path);
+          try {
+            const compressed = await this.storageService.compressImage(data.file);
+            const ext = data.file.name.split('.').pop() || 'jpg';
+            const path = `${folder}/${key}_in.${ext}`;
+            urls[key] = await this.storageService.uploadFile(compressed, path);
+          } catch (err) {
+            console.error('Falha ao enviar arquivo', key, err);
+            uploadErrors.push({ key, error: err });
+            urls[key] = '';
+          }
         }
+      }
+
+      if (uploadErrors.length > 0) {
+        const failed = uploadErrors.map(u => u.key).join(', ');
+        throw new Error(`Falha no upload das imagens: ${failed}`);
       }
 
       // 2. Criar registro de jornada e checkin
@@ -418,7 +430,10 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
         km: parseInt(formValue.km_inicial, 10),
         foto_painel_uri: urls.foto_painel || '',
         selfie_uri: urls.selfie || '',
-        foto_placa_uri: urls.foto_frente || ''
+        foto_frente_uri: urls.foto_frente || '',
+        foto_traseira_uri: urls.foto_traseira || '',
+        foto_lateral_esquerda_uri: urls.foto_lateral_esquerda || '',
+        foto_lateral_direita_uri: urls.foto_lateral_direita || ''
       };
 
       const jornadaCriada = await this.historicoService.iniciarJornada(novaJornada, novoCheckin);
@@ -434,9 +449,9 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
       // 4. Navegar para Jornada Ativa
       this.router.navigate(['/motorista/jornada', jornadaCriada.id]);
 
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('Erro ao realizar check-in. Tente novamente.');
+      alert('Erro ao realizar check-in: ' + (e?.message || JSON.stringify(e)));
     } finally {
       this.submitting = false;
     }

@@ -228,28 +228,26 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
 
     // Build Check-in Slots
     const cin = this.jornada.checkins && this.jornada.checkins.length > 0 ? this.jornada.checkins[0] : null;
-    const cinVeiculoFotos = cin?.foto_placa_uri ? cin.foto_placa_uri.split(',') : [];
 
     this.checkinPhotos = [
       { label: 'Painel', uri: cin?.foto_painel_uri },
       { label: 'Selfie', uri: cin?.selfie_uri },
-      { label: 'Frente', uri: cinVeiculoFotos[0] || cin?.foto_frente_uri },
-      { label: 'Lat. Direita', uri: cinVeiculoFotos[1] || cin?.foto_lateral_direita_uri },
-      { label: 'Lat. Esquerda', uri: cinVeiculoFotos[2] || cin?.foto_lateral_esquerda_uri },
-      { label: 'Traseira', uri: cinVeiculoFotos[3] || cin?.foto_traseira_uri },
+      { label: 'Frente', uri: cin?.foto_frente_uri },
+      { label: 'Lat. Direita', uri: cin?.foto_lateral_direita_uri },
+      { label: 'Lat. Esquerda', uri: cin?.foto_lateral_esquerda_uri },
+      { label: 'Traseira', uri: cin?.foto_traseira_uri }
     ];
 
     // Build Check-out Slots
     const cout = this.jornada.checkouts && this.jornada.checkouts.length > 0 ? this.jornada.checkouts[0] : null;
-    const coutVeiculoFotos = cout?.foto_veiculo_uri ? cout.foto_veiculo_uri.split(',') : [];
 
     this.checkoutPhotos = [
       { label: 'Painel', uri: cout?.foto_painel_uri },
       { label: 'Selfie', uri: cout?.selfie_uri },
-      { label: 'Frente', uri: coutVeiculoFotos[0] || cout?.foto_frente_uri },
-      { label: 'Lat. Direita', uri: coutVeiculoFotos[1] || cout?.foto_lateral_direita_uri },
-      { label: 'Lat. Esquerda', uri: coutVeiculoFotos[2] || cout?.foto_lateral_esquerda_uri },
-      { label: 'Traseira', uri: coutVeiculoFotos[3] || cout?.foto_traseira_uri },
+      { label: 'Frente', uri: cout?.foto_frente_uri },
+      { label: 'Lat. Direita', uri: cout?.foto_lateral_direita_uri },
+      { label: 'Lat. Esquerda', uri: cout?.foto_lateral_esquerda_uri },
+      { label: 'Traseira', uri: cout?.foto_traseira_uri }
     ];
   }
 
