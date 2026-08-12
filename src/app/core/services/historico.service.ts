@@ -101,11 +101,18 @@ export class HistoricoService {
   async getJornadaById(id: string): Promise<Jornada> {
     const { data, error } = await this.supabase.client
       .from(this.TABLE)
-      .select('*, veiculos (placa, modelo)')
+      .select(`
+        *,
+        usuarios (nome),
+        veiculos (placa, modelo),
+        checkins!jornada_id (*),
+        checkouts!jornada_id (*)
+      `)
       .eq('id', id)
       .single();
 
     if (error) throw error;
+    data.motorista_nome = data.usuarios?.nome || 'Desconhecido';
     data.veiculo_placa = data.veiculos ? `${data.veiculos.modelo} (${data.veiculos.placa})` : 'Desconhecido';
     return data;
   }

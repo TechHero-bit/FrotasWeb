@@ -107,7 +107,12 @@ interface PhotoSlot {
         <div class="side-info-col">
           <div class="gallery-card mb-4">
             <div class="card-header gallery-header">
-              <h3>Galeria de Evidências</h3>
+              <div class="d-flex align-items-center justify-content-between w-100">
+                <h3>Galeria de Evidências</h3>
+                <button type="button" class="toggle-slots-btn" (click)="showOnlyRegistered = !showOnlyRegistered">
+                  {{ showOnlyRegistered ? 'Exibir todos os slots' : 'Apenas registradas' }}
+                </button>
+              </div>
               <div class="gallery-tabs">
                 <button type="button" class="tab-btn" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">
                   Todas ({{ countPhotos(checkinPhotos) + countPhotos(checkoutPhotos) }})
@@ -126,23 +131,30 @@ interface PhotoSlot {
                   <h4 class="section-title">Check-in</h4>
                   <span class="badge-count">{{ countPhotos(checkinPhotos) }}/6 fotos</span>
                 </div>
-                <div class="photos-grid mb-4">
-                  @for (photo of checkinPhotos; track photo.label) {
-                    <div class="photo-item">
-                      @if (photo.uri && !photo.error) {
-                        <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
-                          <div class="skeleton" *ngIf="!photo.loaded"></div>
-                          <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
-                        </div>
-                      } @else {
-                        <div class="photo-placeholder">
-                          <span class="text-muted">Sem foto</span>
-                        </div>
-                      }
-                      <span class="photo-caption">{{ photo.label }}</span>
-                    </div>
-                  }
-                </div>
+                
+                @if (getVisiblePhotos(checkinPhotos).length === 0) {
+                  <div class="no-photos-alert">
+                    <span>Nenhuma foto registrada no Check-in</span>
+                  </div>
+                } @else {
+                  <div class="photos-grid mb-4">
+                    @for (photo of getVisiblePhotos(checkinPhotos); track photo.label) {
+                      <div class="photo-item">
+                        @if (photo.uri && !photo.error) {
+                          <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
+                            <div class="skeleton" *ngIf="!photo.loaded"></div>
+                            <img [src]="photo.uri" [alt]="photo.label" loading="lazy" decoding="async" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
+                          </div>
+                        } @else {
+                          <div class="photo-placeholder">
+                            <span class="text-muted">Sem foto</span>
+                          </div>
+                        }
+                        <span class="photo-caption">{{ photo.label }}</span>
+                      </div>
+                    }
+                  </div>
+                }
               }
 
               @if (activeTab === 'checkout' || activeTab === 'all') {
@@ -150,23 +162,30 @@ interface PhotoSlot {
                   <h4 class="section-title">Check-out</h4>
                   <span class="badge-count">{{ countPhotos(checkoutPhotos) }}/6 fotos</span>
                 </div>
-                <div class="photos-grid">
-                  @for (photo of checkoutPhotos; track photo.label) {
-                    <div class="photo-item">
-                      @if (photo.uri && !photo.error) {
-                        <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
-                          <div class="skeleton" *ngIf="!photo.loaded"></div>
-                          <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
-                        </div>
-                      } @else {
-                        <div class="photo-placeholder">
-                          <span class="text-muted">Sem foto</span>
-                        </div>
-                      }
-                      <span class="photo-caption">{{ photo.label }}</span>
-                    </div>
-                  }
-                </div>
+
+                @if (getVisiblePhotos(checkoutPhotos).length === 0) {
+                  <div class="no-photos-alert">
+                    <span>Nenhuma foto registrada no Check-out</span>
+                  </div>
+                } @else {
+                  <div class="photos-grid">
+                    @for (photo of getVisiblePhotos(checkoutPhotos); track photo.label) {
+                      <div class="photo-item">
+                        @if (photo.uri && !photo.error) {
+                          <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
+                            <div class="skeleton" *ngIf="!photo.loaded"></div>
+                            <img [src]="photo.uri" [alt]="photo.label" loading="lazy" decoding="async" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
+                          </div>
+                        } @else {
+                          <div class="photo-placeholder">
+                            <span class="text-muted">Sem foto</span>
+                          </div>
+                        }
+                        <span class="photo-caption">{{ photo.label }}</span>
+                      </div>
+                    }
+                  </div>
+                }
               }
             </div>
           </div>
@@ -192,6 +211,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   checkoutPhotos: PhotoSlot[] = [];
   expandedPhoto: string | null = null;
   activeTab: 'all' | 'checkin' | 'checkout' = 'all';
+  showOnlyRegistered = true;
 
   @ViewChild('mapContainer') private mapContainer!: ElementRef<HTMLElement>;
   private map: maplibregl.Map | null = null;
@@ -225,8 +245,9 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     try {
       this.loading = true;
       this.cdr.detectChanges();
-      const jornadas = await this.historicoService.getJornadas();
-      const jornada = jornadas.find(j => j.id.toString() === id.toString());
+      
+      // Carrega DIRETO pelo ID (sem baixar a tabela inteira do banco)
+      const jornada = await this.historicoService.getJornadaById(id);
       
       if (jornada) {
         this.jornada = jornada;
@@ -235,12 +256,12 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
         this.error = 'Jornada não encontrada.';
       }
     } catch (err: any) {
-      this.error = 'Erro ao carregar detalhes: ' + err.message;
+      this.error = 'Erro ao carregar detalhes: ' + (err.message || 'Falha na requisição.');
     } finally {
       this.loading = false;
       this.cdr.detectChanges();
       if (this.jornada) {
-        setTimeout(() => this.initMap(), 100);
+        setTimeout(() => this.initMap(), 50);
       }
     }
   }
@@ -254,7 +275,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     this.checkinPhotos = [
       { label: 'Painel', uri: cin?.foto_painel_uri },
       { label: 'Selfie', uri: cin?.selfie_uri },
-      { label: 'Frente', uri: cin?.foto_frente_uri },
+      { label: 'Frente', uri: cin?.foto_frente_uri || (cin as any)?.foto_placa_uri },
       { label: 'Lat. Direita', uri: cin?.foto_lateral_direita_uri },
       { label: 'Lat. Esquerda', uri: cin?.foto_lateral_esquerda_uri },
       { label: 'Traseira', uri: cin?.foto_traseira_uri }
@@ -266,11 +287,20 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     this.checkoutPhotos = [
       { label: 'Painel', uri: cout?.foto_painel_uri },
       { label: 'Selfie', uri: cout?.selfie_uri },
-      { label: 'Frente', uri: cout?.foto_frente_uri },
+      { label: 'Frente', uri: cout?.foto_frente_uri || (cout as any)?.foto_veiculo_uri },
       { label: 'Lat. Direita', uri: cout?.foto_lateral_direita_uri },
       { label: 'Lat. Esquerda', uri: cout?.foto_lateral_esquerda_uri },
       { label: 'Traseira', uri: cout?.foto_traseira_uri }
     ];
+  }
+
+  getVisiblePhotos(photos: PhotoSlot[]): PhotoSlot[] {
+    if (this.showOnlyRegistered) {
+      const registered = photos.filter(p => !!p.uri && !p.error);
+      // Se tiver pelo menos 1 foto enviada, mostra só as enviadas. Caso contrário mostra os slots
+      return registered.length > 0 ? registered : photos;
+    }
+    return photos;
   }
 
   countPhotos(photos: PhotoSlot[]): number {
@@ -314,14 +344,22 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
       destLat = null;
     }
 
-    // Se não tiver coordenadas válidas do Brasil, tenta buscar pelo endereço (Geocoding fallback)
+    // Se não tiver coordenadas válidas do Brasil, executa geocoding em PARALELO para máxima velocidade
+    const geocodePromises: Promise<void>[] = [];
+
     if ((!originLng || !originLat) && this.jornada?.origem) {
-      const coords = await this.geocode(this.jornada.origem);
-      if (coords) { originLng = coords[0]; originLat = coords[1]; }
+      geocodePromises.push(this.geocode(this.jornada.origem).then(coords => {
+        if (coords) { originLng = coords[0]; originLat = coords[1]; }
+      }));
     }
     if ((!destLng || !destLat) && this.jornada?.destino) {
-      const coords = await this.geocode(this.jornada.destino);
-      if (coords) { destLng = coords[0]; destLat = coords[1]; }
+      geocodePromises.push(this.geocode(this.jornada.destino).then(coords => {
+        if (coords) { destLng = coords[0]; destLat = coords[1]; }
+      }));
+    }
+
+    if (geocodePromises.length > 0) {
+      await Promise.all(geocodePromises);
     }
 
     // Fallback final se tudo falhar (Centro do RJ -> Copacabana)
