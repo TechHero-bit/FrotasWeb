@@ -409,6 +409,16 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
       const formValue = this.checkinForm.value;
       const dataInicio = new Date();
       
+      // Fallback: se lat/lon não foram capturadas via autocomplete, busca via Nominatim (Brasil)
+      if ((!this.origemLat || !this.origemLon) && formValue.origem) {
+        const coords = await this.geocodeAddress(formValue.origem);
+        if (coords) { this.origemLon = coords[0]; this.origemLat = coords[1]; }
+      }
+      if ((!this.destinoLat || !this.destinoLon) && formValue.destino) {
+        const coords = await this.geocodeAddress(formValue.destino);
+        if (coords) { this.destinoLon = coords[0]; this.destinoLat = coords[1]; }
+      }
+
       const novaJornada = {
         motorista_id: session.user.id,
         veiculo_id: this.veiculoId,
@@ -455,5 +465,32 @@ export class CheckinComponent implements OnInit, AfterViewInit, OnDestroy {
     } finally {
       this.submitting = false;
     }
+  }
+
+  async geocodeAddress(address: string): Promise<[number, number] | null> {
+    if (!address || !address.trim()) return null;
+    try {
+      let query = address.split('-')[0].trim();
+      if (!query.toLowerCase().includes('rio de janeiro') && !query.toLowerCase().includes('brasil')) {
+        query += ', Rio de Janeiro, Brasil';
+      } else if (!query.toLowerCase().includes('brasil')) {
+        query += ', Brasil';
+      }
+
+      const rjViewbox = '-44.889,-23.370,-40.958,-20.764';
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&viewbox=${rjViewbox}&limit=1`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lon = Number(data[0].lon);
+        const lat = Number(data[0].lat);
+        if (lat >= -34 && lat <= 5 && lon >= -74 && lon <= -34) {
+          return [lon, lat];
+        }
+      }
+    } catch (e) {
+      console.warn('Erro no geocoding do checkin:', e);
+    }
+    return null;
   }
 }

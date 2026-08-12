@@ -106,47 +106,68 @@ interface PhotoSlot {
         <!-- Coluna Direita: Fotos e Observações -->
         <div class="side-info-col">
           <div class="gallery-card mb-4">
-            <div class="card-header">
+            <div class="card-header gallery-header">
               <h3>Galeria de Evidências</h3>
+              <div class="gallery-tabs">
+                <button type="button" class="tab-btn" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">
+                  Todas ({{ countPhotos(checkinPhotos) + countPhotos(checkoutPhotos) }})
+                </button>
+                <button type="button" class="tab-btn" [class.active]="activeTab === 'checkin'" (click)="activeTab = 'checkin'">
+                  Check-in ({{ countPhotos(checkinPhotos) }})
+                </button>
+                <button type="button" class="tab-btn" [class.active]="activeTab === 'checkout'" (click)="activeTab = 'checkout'">
+                  Check-out ({{ countPhotos(checkoutPhotos) }})
+                </button>
+              </div>
             </div>
-            <div class="card-body">
-              <h4 class="section-title">Check-in</h4>
-              <div class="photos-grid mb-3">
-                @for (photo of checkinPhotos; track photo.label) {
-                  <div class="photo-item">
-                    @if (photo.uri && !photo.error) {
-                      <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
-                        <div class="skeleton" *ngIf="!photo.loaded"></div>
-                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
-                      </div>
-                    } @else {
-                      <div class="photo-placeholder">
-                        <span class="text-muted">Foto não registrada</span>
-                      </div>
-                    }
-                    <span class="photo-caption">{{ photo.label }}</span>
-                  </div>
-                }
-              </div>
+            <div class="card-body gallery-body">
+              @if (activeTab === 'checkin' || activeTab === 'all') {
+                <div class="section-header">
+                  <h4 class="section-title">Check-in</h4>
+                  <span class="badge-count">{{ countPhotos(checkinPhotos) }}/6 fotos</span>
+                </div>
+                <div class="photos-grid mb-4">
+                  @for (photo of checkinPhotos; track photo.label) {
+                    <div class="photo-item">
+                      @if (photo.uri && !photo.error) {
+                        <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
+                          <div class="skeleton" *ngIf="!photo.loaded"></div>
+                          <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
+                        </div>
+                      } @else {
+                        <div class="photo-placeholder">
+                          <span class="text-muted">Sem foto</span>
+                        </div>
+                      }
+                      <span class="photo-caption">{{ photo.label }}</span>
+                    </div>
+                  }
+                </div>
+              }
 
-              <h4 class="section-title">Check-out</h4>
-              <div class="photos-grid">
-                @for (photo of checkoutPhotos; track photo.label) {
-                  <div class="photo-item">
-                    @if (photo.uri && !photo.error) {
-                      <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
-                        <div class="skeleton" *ngIf="!photo.loaded"></div>
-                        <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
-                      </div>
-                    } @else {
-                      <div class="photo-placeholder">
-                        <span class="text-muted">Foto não registrada</span>
-                      </div>
-                    }
-                    <span class="photo-caption">{{ photo.label }}</span>
-                  </div>
-                }
-              </div>
+              @if (activeTab === 'checkout' || activeTab === 'all') {
+                <div class="section-header">
+                  <h4 class="section-title">Check-out</h4>
+                  <span class="badge-count">{{ countPhotos(checkoutPhotos) }}/6 fotos</span>
+                </div>
+                <div class="photos-grid">
+                  @for (photo of checkoutPhotos; track photo.label) {
+                    <div class="photo-item">
+                      @if (photo.uri && !photo.error) {
+                        <div class="img-wrapper" (click)="expandPhoto(photo.uri)" style="cursor: pointer;" title="Clique para expandir">
+                          <div class="skeleton" *ngIf="!photo.loaded"></div>
+                          <img [src]="photo.uri" [alt]="photo.label" loading="lazy" (load)="photo.loaded = true" (error)="photo.error = true" [style.opacity]="photo.loaded ? 1 : 0">
+                        </div>
+                      } @else {
+                        <div class="photo-placeholder">
+                          <span class="text-muted">Sem foto</span>
+                        </div>
+                      }
+                      <span class="photo-caption">{{ photo.label }}</span>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -170,6 +191,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   checkinPhotos: PhotoSlot[] = [];
   checkoutPhotos: PhotoSlot[] = [];
   expandedPhoto: string | null = null;
+  activeTab: 'all' | 'checkin' | 'checkout' = 'all';
 
   @ViewChild('mapContainer') private mapContainer!: ElementRef<HTMLElement>;
   private map: maplibregl.Map | null = null;
@@ -251,6 +273,10 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     ];
   }
 
+  countPhotos(photos: PhotoSlot[]): number {
+    return photos.filter(p => !!p.uri && !p.error).length;
+  }
+
   expandPhoto(uri?: string) {
     if (uri) {
       this.expandedPhoto = uri;
@@ -275,7 +301,20 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     let destLng = this.jornada?.destino_longitude ? Number(this.jornada.destino_longitude) : null;
     let destLat = this.jornada?.destino_latitude ? Number(this.jornada.destino_latitude) : null;
 
-    // Se não tiver coordenadas, tenta buscar pelo endereço (Geocoding fallback)
+    // Helper para verificar se a coordenada é válida dentro do Brasil
+    const isBrazilCoord = (lng: number | null, lat: number | null) =>
+      lng !== null && lat !== null && lat >= -34 && lat <= 5 && lng >= -74 && lng <= -34;
+
+    if (!isBrazilCoord(originLng, originLat)) {
+      originLng = null;
+      originLat = null;
+    }
+    if (!isBrazilCoord(destLng, destLat)) {
+      destLng = null;
+      destLat = null;
+    }
+
+    // Se não tiver coordenadas válidas do Brasil, tenta buscar pelo endereço (Geocoding fallback)
     if ((!originLng || !originLat) && this.jornada?.origem) {
       const coords = await this.geocode(this.jornada.origem);
       if (coords) { originLng = coords[0]; originLat = coords[1]; }
@@ -285,7 +324,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
       if (coords) { destLng = coords[0]; destLat = coords[1]; }
     }
 
-    // Fallback final se tudo falhar (Centro -> Copacabana)
+    // Fallback final se tudo falhar (Centro do RJ -> Copacabana)
     const origin: [number, number] = (originLng && originLat) ? [originLng, originLat] : [-43.18223, -22.90642];
     const destination: [number, number] = (destLng && destLat) ? [destLng, destLat] : [-43.1755, -22.9688];
 
@@ -344,12 +383,26 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   }
 
   async geocode(address: string): Promise<[number, number] | null> {
+    if (!address || !address.trim()) return null;
     try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-      const res = await fetch(url);
+      // Limpa sufixos redundantes e ruídos do autocomplete
+      let query = address.split('-')[0].trim();
+      if (!query.toLowerCase().includes('rio de janeiro') && !query.toLowerCase().includes('brasil')) {
+        query += ', Rio de Janeiro, Brasil';
+      } else if (!query.toLowerCase().includes('brasil')) {
+        query += ', Brasil';
+      }
+
+      const rjViewbox = '-44.889,-23.370,-40.958,-20.764';
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&viewbox=${rjViewbox}&limit=1`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
       const data = await res.json();
       if (data && data.length > 0) {
-        return [Number(data[0].lon), Number(data[0].lat)];
+        const lon = Number(data[0].lon);
+        const lat = Number(data[0].lat);
+        if (lat >= -34 && lat <= 5 && lon >= -74 && lon <= -34) {
+          return [lon, lat];
+        }
       }
     } catch (e) {
       console.warn('Erro ao buscar coordenadas para o endereço:', address, e);
