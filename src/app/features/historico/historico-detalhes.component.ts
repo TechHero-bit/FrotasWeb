@@ -269,28 +269,50 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
   buildPhotoSlots() {
     if (!this.jornada) return;
 
+    const parseVehiclePhotos = (record: any, mainPlacaUri?: string) => {
+      let frente = record?.foto_frente_uri;
+      let latEsq = record?.foto_lateral_esquerda_uri;
+      let latDir = record?.foto_lateral_direita_uri;
+      let traseira = record?.foto_traseira_uri;
+
+      // Fallback para registros antigos ou strings concatenadas por vírgula
+      if ((!frente || !latEsq || !latDir || !traseira) && mainPlacaUri) {
+        const splitUrls = mainPlacaUri.split(',').map(s => s.trim()).filter(Boolean);
+        if (splitUrls.length > 0) {
+          if (!frente) frente = splitUrls[0];
+          if (!latEsq) latEsq = splitUrls[1];
+          if (!latDir) latDir = splitUrls[2];
+          if (!traseira) traseira = splitUrls[3];
+        }
+      }
+
+      return { frente, latEsq, latDir, traseira };
+    };
+
     // Build Check-in Slots
     const cin = this.jornada.checkins && this.jornada.checkins.length > 0 ? this.jornada.checkins[0] : null;
+    const cinVehicle = parseVehiclePhotos(cin, (cin as any)?.foto_placa_uri);
 
     this.checkinPhotos = [
       { label: 'Painel', uri: cin?.foto_painel_uri },
       { label: 'Selfie', uri: cin?.selfie_uri },
-      { label: 'Frente', uri: cin?.foto_frente_uri || (cin as any)?.foto_placa_uri },
-      { label: 'Lat. Direita', uri: cin?.foto_lateral_direita_uri },
-      { label: 'Lat. Esquerda', uri: cin?.foto_lateral_esquerda_uri },
-      { label: 'Traseira', uri: cin?.foto_traseira_uri }
+      { label: 'Frente', uri: cinVehicle.frente },
+      { label: 'Lat. Direita', uri: cinVehicle.latDir },
+      { label: 'Lat. Esquerda', uri: cinVehicle.latEsq },
+      { label: 'Traseira', uri: cinVehicle.traseira }
     ];
 
     // Build Check-out Slots
     const cout = this.jornada.checkouts && this.jornada.checkouts.length > 0 ? this.jornada.checkouts[0] : null;
+    const coutVehicle = parseVehiclePhotos(cout, (cout as any)?.foto_veiculo_uri);
 
     this.checkoutPhotos = [
       { label: 'Painel', uri: cout?.foto_painel_uri },
       { label: 'Selfie', uri: cout?.selfie_uri },
-      { label: 'Frente', uri: cout?.foto_frente_uri || (cout as any)?.foto_veiculo_uri },
-      { label: 'Lat. Direita', uri: cout?.foto_lateral_direita_uri },
-      { label: 'Lat. Esquerda', uri: cout?.foto_lateral_esquerda_uri },
-      { label: 'Traseira', uri: cout?.foto_traseira_uri }
+      { label: 'Frente', uri: coutVehicle.frente },
+      { label: 'Lat. Direita', uri: coutVehicle.latDir },
+      { label: 'Lat. Esquerda', uri: coutVehicle.latEsq },
+      { label: 'Traseira', uri: coutVehicle.traseira }
     ];
   }
 
@@ -425,14 +447,11 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     try {
       // Limpa sufixos redundantes e ruídos do autocomplete
       let query = address.split('-')[0].trim();
-      if (!query.toLowerCase().includes('rio de janeiro') && !query.toLowerCase().includes('brasil')) {
-        query += ', Rio de Janeiro, Brasil';
-      } else if (!query.toLowerCase().includes('brasil')) {
+      if (!query.toLowerCase().includes('brasil')) {
         query += ', Brasil';
       }
 
-      const rjViewbox = '-44.889,-23.370,-40.958,-20.764';
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&viewbox=${rjViewbox}&limit=1`;
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=1`;
       const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
       const data = await res.json();
       if (data && data.length > 0) {
@@ -447,6 +466,7 @@ export class HistoricoDetalhesComponent implements OnInit, AfterViewInit, OnDest
     }
     return null;
   }
+
 
   ngOnDestroy() {
     if (this.map) {

@@ -59,21 +59,43 @@ export class HistoricoService {
   constructor(private supabase: SupabaseService) {}
 
   async getJornadas(): Promise<Jornada[]> {
-    const { data, error } = await this.supabase.client
+    const { data: jornadas, error } = await this.supabase.client
       .from(this.TABLE)
       .select(`
         *,
         usuarios (nome),
-        veiculos (placa, modelo),
-        checkins!jornada_id (*),
-        checkouts!jornada_id (*)
+        veiculos (placa, modelo)
       `)
       .order('iniciado_em', { ascending: false });
 
     if (error) throw error;
-    
-    return (data || []).map(j => ({
+    if (!jornadas || jornadas.length === 0) return [];
+
+    const jornadaIds = jornadas.map(j => j.id);
+
+    const [checkinsRes, checkoutsRes] = await Promise.all([
+      this.supabase.client.from('checkins').select('*').in('jornada_id', jornadaIds),
+      this.supabase.client.from('checkouts').select('*').in('jornada_id', jornadaIds)
+    ]);
+
+    const checkinsMap = new Map<any, any[]>();
+    (checkinsRes.data || []).forEach(c => {
+      const list = checkinsMap.get(c.jornada_id) || [];
+      list.push(c);
+      checkinsMap.set(c.jornada_id, list);
+    });
+
+    const checkoutsMap = new Map<any, any[]>();
+    (checkoutsRes.data || []).forEach(c => {
+      const list = checkoutsMap.get(c.jornada_id) || [];
+      list.push(c);
+      checkoutsMap.set(c.jornada_id, list);
+    });
+
+    return jornadas.map(j => ({
       ...j,
+      checkins: checkinsMap.get(j.id) || [],
+      checkouts: checkoutsMap.get(j.id) || [],
       motorista_nome: j.usuarios?.nome || 'Desconhecido',
       veiculo_placa: j.veiculos ? `${j.veiculos.modelo} (${j.veiculos.placa})` : 'Desconhecido'
     }));
@@ -99,22 +121,29 @@ export class HistoricoService {
   }
   
   async getJornadaById(id: string): Promise<Jornada> {
-    const { data, error } = await this.supabase.client
+    const { data: jornada, error } = await this.supabase.client
       .from(this.TABLE)
       .select(`
         *,
         usuarios (nome),
-        veiculos (placa, modelo),
-        checkins!jornada_id (*),
-        checkouts!jornada_id (*)
+        veiculos (placa, modelo)
       `)
       .eq('id', id)
       .single();
 
     if (error) throw error;
-    data.motorista_nome = data.usuarios?.nome || 'Desconhecido';
-    data.veiculo_placa = data.veiculos ? `${data.veiculos.modelo} (${data.veiculos.placa})` : 'Desconhecido';
-    return data;
+
+    const [checkinsRes, checkoutsRes] = await Promise.all([
+      this.supabase.client.from('checkins').select('*').eq('jornada_id', id),
+      this.supabase.client.from('checkouts').select('*').eq('jornada_id', id)
+    ]);
+
+    jornada.checkins = checkinsRes.data || [];
+    jornada.checkouts = checkoutsRes.data || [];
+    jornada.motorista_nome = jornada.usuarios?.nome || 'Desconhecido';
+    jornada.veiculo_placa = jornada.veiculos ? `${jornada.veiculos.modelo} (${jornada.veiculos.placa})` : 'Desconhecido';
+
+    return jornada;
   }
 
   async iniciarJornada(jornada: Partial<Jornada>, checkin: Checkin): Promise<Jornada> {
